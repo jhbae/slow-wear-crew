@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>감각 반응 설문조사</title>
+    <title>감각 반응 설문조사 V3</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -50,11 +50,12 @@
             padding: 30px;
         }
 
-        .login-screen, .survey-screen, .result-screen, .admin-screen, .admin-login-screen {
+        .login-screen, .participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen {
             display: none;
         }
 
-        .login-screen.active, .survey-screen.active, .result-screen.active, .admin-screen.active, .admin-login-screen.active {
+        .login-screen.active, .participant-dashboard-screen.active, .survey-screen.active, 
+        .result-screen.active, .admin-screen.active {
             display: block;
         }
 
@@ -109,6 +110,98 @@
             margin-top: 10px;
         }
 
+        /* 참가자 대시보드 */
+        .progress-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .progress-card h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .week-card-large {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .week-card-large.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .week-card-large:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .week-header h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .week-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .week-status.incomplete {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .week-content {
+            margin-bottom: 15px;
+        }
+
+        .week-content.empty {
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .score-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 설문 */
         .category {
             margin-bottom: 40px;
             padding: 20px;
@@ -197,57 +290,6 @@
             min-height: 60px;
         }
 
-        .result-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .result-title {
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .result-score {
-            font-size: 24px;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .sensitivity {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .sensitivity.low {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .sensitivity.medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .sensitivity.high {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
         .week-selector {
             display: flex;
             gap: 10px;
@@ -285,34 +327,78 @@
             transition: width 0.3s;
         }
 
-        .alert {
-            padding: 12px;
-            border-radius: 8px;
+        /* 결과 */
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
             margin-bottom: 20px;
         }
 
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        .alert-success {
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .sensitivity {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .sensitivity.low {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
         }
 
-        .admin-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .sensitivity.medium {
+            background: #fff3cd;
+            color: #856404;
         }
 
-        .participant-list {
+        .sensitivity.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 관리자 */
+        .session-card {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .session-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .session-stats {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
         }
 
         .participant-item {
@@ -325,25 +411,6 @@
             align-items: center;
         }
 
-        .week-history {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .week-card {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #e0e0e0;
-        }
-
-        .week-card.completed {
-            border-color: #28a745;
-        }
-
         @media (max-width: 600px) {
             .content {
                 padding: 20px;
@@ -352,6 +419,10 @@
             .radio-group {
                 flex-direction: column;
             }
+
+            .week-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -359,24 +430,46 @@
     <div class="container">
         <div class="header">
             <h1>🌈 감각 반응 설문조사</h1>
-            <p>4주간 진행되는 감각 반응 평가 프로그램</p>
+            <p>회차별 감각 반응 평가 프로그램</p>
         </div>
 
         <div class="content">
             <!-- 로그인 화면 -->
             <div class="login-screen active">
                 <div class="input-group">
-                    <label>참가자 코드를 입력해주세요</label>
-                    <input type="text" id="participantCode" placeholder="예: P001, 김철수2024">
+                    <label>코드 또는 비밀번호를 입력하세요</label>
+                    <input type="text" id="loginInput" placeholder="참가자 코드 또는 관리자 비밀번호">
                 </div>
-                <button class="btn" onclick="login()">시작하기</button>
-                <button class="btn btn-secondary" onclick="showAdmin()">관리자 페이지</button>
-                <div id="loginError" style="margin-top: 10px; color: #721c24; display: none;"></div>
+                <button class="btn" onclick="login()">입력</button>
+                <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #666;">
+                    참가자는 받은 코드를, 관리자는 비밀번호를 입력하세요
+                </div>
+            </div>
+
+            <!-- 참가자 대시보드 화면 -->
+            <div class="participant-dashboard-screen">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>📊 내 설문 결과</h2>
+                    <button class="btn btn-secondary" onclick="logout()" style="width: auto; padding: 10px 20px;">로그아웃</button>
+                </div>
+                
+                <!-- 진행 현황 -->
+                <div class="progress-card">
+                    <h3>진행 현황</h3>
+                    <div id="participantProgress"></div>
+                </div>
+                
+                <!-- 주차별 카드 -->
+                <div class="week-grid" id="weekGrid"></div>
             </div>
 
             <!-- 설문 화면 -->
             <div class="survey-screen">
-                <div class="week-selector" id="weekSelector"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="surveyTitle">설문 작성</h2>
+                    <button class="btn btn-secondary" onclick="backToDashboard()" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
+                </div>
+                
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                 </div>
@@ -384,44 +477,20 @@
                 <div id="surveyContent"></div>
                 
                 <button class="btn" onclick="submitSurvey()">제출하기</button>
-                <button class="btn btn-secondary" onclick="logout()">로그아웃</button>
             </div>
 
             <!-- 결과 화면 -->
             <div class="result-screen">
-                <h2 style="margin-bottom: 20px; text-align: center;">📊 설문 결과</h2>
-                <div id="resultContent"></div>
-                <div class="week-history" id="weekHistory"></div>
-                <button class="btn" onclick="backToSurvey()">돌아가기</button>
-                <button class="btn btn-secondary" onclick="logout()">로그아웃</button>
-            </div>
-
-            <!-- 관리자 로그인 화면 -->
-            <div class="admin-login-screen">
-                <h2 style="margin-bottom: 20px; text-align: center;">🔐 관리자 로그인</h2>
-                <div class="input-group">
-                    <label>관리자 비밀번호</label>
-                    <input type="password" id="adminPassword" placeholder="비밀번호 입력">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>📊 설문 결과</h2>
+                    <button class="btn btn-secondary" onclick="backToDashboard()" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
                 </div>
-                <button class="btn" onclick="adminLogin()">로그인</button>
-                <button class="btn btn-secondary" onclick="backToLogin()">돌아가기</button>
-                <div id="adminLoginError" style="margin-top: 10px; color: #721c24; display: none;"></div>
+                <div id="resultContent"></div>
             </div>
 
             <!-- 관리자 화면 -->
             <div class="admin-screen">
-                <h2 style="margin-bottom: 20px;">👨‍💼 관리자 페이지</h2>
-                
-                <div class="input-group">
-                    <label>새 참가자 코드 생성</label>
-                    <input type="text" id="newParticipantCode" placeholder="참가자 코드 입력">
-                </div>
-                <button class="btn" onclick="addParticipant()">참가자 추가</button>
-                
-                <h3 style="margin-top: 30px; margin-bottom: 15px;">참가자 목록</h3>
-                <div class="participant-list" id="participantList"></div>
-                
-                <button class="btn btn-secondary" onclick="adminLogout()">로그아웃</button>
+                <div id="adminContent"></div>
             </div>
         </div>
     </div>
@@ -435,12 +504,10 @@
           projectId: "slow-wear-crew",
           storageBucket: "slow-wear-crew.firebasestorage.app",
           messagingSenderId: "281669334869",
-          appId: "1:281669334869:web:e8ebacf777c25127a5e1dc",
           databaseURL: "https://slow-wear-crew-default-rtdb.asia-southeast1.firebasedatabase.app",
+          appId: "1:281669334869:web:e8ebacf777c25127a5e1dc",
           measurementId: "G-ZSQMNN9WSH"
         };
-        // ⚠️ 관리자 비밀번호 설정 (원하는 비밀번호로 변경하세요)
-        const ADMIN_PASSWORD = "admin1234";  // 이 비밀번호를 변경하세요!
 
         // Firebase 초기화
         let app, database;
@@ -518,130 +585,286 @@
             ]
         };
 
+        let currentSession = null;
         let currentUser = null;
         let currentWeek = 1;
+        let isAdmin = false;
         let responses = {};
 
         // 화면 전환
         function showScreen(screenName) {
-            document.querySelectorAll('.login-screen, .survey-screen, .result-screen, .admin-screen, .admin-login-screen').forEach(screen => {
+            document.querySelectorAll('.login-screen, .participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
                 screen.classList.remove('active');
             });
             document.querySelector(`.${screenName}`).classList.add('active');
         }
 
-        // 로그인
-        function login() {
-            const code = document.getElementById('participantCode').value.trim();
-            if (!code) {
-                alert('참가자 코드를 입력해주세요.');
+        // 통합 로그인
+        async function login() {
+            const input = document.getElementById('loginInput').value.trim();
+            
+            if (!input) {
+                alert('코드 또는 비밀번호를 입력해주세요.');
                 return;
             }
 
             if (!database) {
-                alert('Firebase가 설정되지 않았습니다. 관리자에게 문의하세요.');
+                alert('Firebase가 설정되지 않았습니다.');
                 return;
             }
 
-            database.ref('participants/' + code).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    currentUser = code;
-                    localStorage.setItem('currentUser', code);
-                    loadWeekSelector();
-                    loadSurvey();
-                    showScreen('survey-screen');
-                } else {
-                    alert('등록되지 않은 참가자 코드입니다. 관리자에게 문의하세요.');
+            try {
+                // 1. 관리자 확인
+                const adminSnapshot = await database.ref(`admin/${input}`).once('value');
+                
+                if (adminSnapshot.exists()) {
+                    // 관리자 로그인
+                    isAdmin = true;
+                    sessionStorage.setItem('isAdmin', 'true');
+                    sessionStorage.setItem('adminPassword', input);
+                    await loadAdminPage();
+                    showScreen('admin-screen');
+                    return;
                 }
-            });
+                
+                // 2. 참가자 코드 확인 (모든 회차 검색)
+                const sessionsSnapshot = await database.ref('sessions').once('value');
+                const sessions = sessionsSnapshot.val() || {};
+                
+                let found = false;
+                
+                for (const [sessionId, sessionData] of Object.entries(sessions)) {
+                    const participants = sessionData.participants || {};
+                    
+                    for (const [userId, userData] of Object.entries(participants)) {
+                        if (userData.accessCode === input.toUpperCase()) {
+                            // 참가자 발견!
+                            currentSession = sessionId;
+                            currentUser = userId;
+                            found = true;
+                            
+                            sessionStorage.setItem('currentSession', sessionId);
+                            sessionStorage.setItem('currentUser', userId);
+                            sessionStorage.setItem('accessCode', input.toUpperCase());
+                            
+                            // 마지막 접속 시간 업데이트
+                            await database.ref(`sessions/${sessionId}/participants/${userId}/lastAccess`)
+                                .set(new Date().toISOString());
+                            
+                            // 참가자 대시보드로!
+                            await loadParticipantDashboard();
+                            showScreen('participant-dashboard-screen');
+                            break;
+                        }
+                    }
+                    
+                    if (found) break;
+                }
+                
+                if (!found) {
+                    alert('유효하지 않은 코드 또는 비밀번호입니다.');
+                }
+                
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                alert('로그인 중 오류: ' + error.message);
+            }
         }
 
         // 로그아웃
         function logout() {
+            currentSession = null;
             currentUser = null;
-            localStorage.removeItem('currentUser');
+            isAdmin = false;
+            sessionStorage.clear();
+            document.getElementById('loginInput').value = '';
             showScreen('login-screen');
         }
 
-        // 주차 선택기 로드
-        function loadWeekSelector() {
-            const selector = document.getElementById('weekSelector');
-            selector.innerHTML = '';
+        // 참가자 대시보드 로드
+        async function loadParticipantDashboard() {
+            if (!currentSession || !currentUser) return;
             
-            for (let i = 1; i <= 4; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'week-btn' + (i === currentWeek ? ' active' : '');
-                btn.textContent = `${i}주차`;
-                btn.onclick = () => selectWeek(i);
-                selector.appendChild(btn);
+            try {
+                // 내 응답 데이터 가져오기
+                const snapshot = await database.ref(
+                    `sessions/${currentSession}/responses/${currentUser}`
+                ).once('value');
+                
+                const myResponses = snapshot.val() || {};
+                
+                // 진행 현황 표시
+                const completedWeeks = Object.keys(myResponses).length;
+                const progressDiv = document.getElementById('participantProgress');
+                progressDiv.innerHTML = `
+                    <div style="font-size: 48px; font-weight: bold; color: white;">
+                        ${completedWeeks}/4
+                    </div>
+                    <div style="font-size: 18px; margin-top: 10px;">
+                        주차 완료
+                    </div>
+                    <div class="progress-bar" style="margin-top: 15px; background: rgba(255,255,255,0.3);">
+                        <div class="progress-fill" style="width: ${(completedWeeks/4)*100}%; background: white;"></div>
+                    </div>
+                `;
+                
+                // 주차별 카드
+                const weekGrid = document.getElementById('weekGrid');
+                weekGrid.innerHTML = '';
+                
+                for (let week = 1; week <= 4; week++) {
+                    const weekData = myResponses[`week${week}`];
+                    const weekCard = document.createElement('div');
+                    weekCard.className = 'week-card-large';
+                    
+                    if (weekData) {
+                        // 완료된 주차
+                        weekCard.classList.add('completed');
+                        
+                        let categoryScores = '';
+                        surveyData.categories.forEach(category => {
+                            const catData = weekData.categories[category.id];
+                            if (catData) {
+                                const sensitivity = calculateSensitivity(catData.total, category.scoreRange);
+                                categoryScores += `
+                                    <div class="score-item">
+                                        <span>${category.icon} ${category.title}</span>
+                                        <span>
+                                            <strong>${catData.total}점</strong>
+                                            <span class="sensitivity ${sensitivity.level}">${sensitivity.text}</span>
+                                        </span>
+                                    </div>
+                                `;
+                            }
+                        });
+                        
+                        weekCard.innerHTML = `
+                            <div class="week-header">
+                                <h3>${week}주차 ✓</h3>
+                                <div class="week-date">${new Date(weekData.timestamp).toLocaleDateString('ko-KR')}</div>
+                            </div>
+                            <div class="week-content">
+                                ${categoryScores}
+                            </div>
+                            <button class="btn" onclick="viewWeekDetail(${week})">상세 보기</button>
+                        `;
+                    } else {
+                        // 미완료 주차
+                        weekCard.innerHTML = `
+                            <div class="week-header">
+                                <h3>${week}주차</h3>
+                                <div class="week-status incomplete">미완료</div>
+                            </div>
+                            <div class="week-content empty">
+                                <div style="text-align: center; padding: 40px 0; color: #999;">
+                                    아직 작성하지 않았습니다
+                                </div>
+                            </div>
+                            <button class="btn" onclick="startWeekSurvey(${week})">설문 시작</button>
+                        `;
+                    }
+                    
+                    weekGrid.appendChild(weekCard);
+                }
+                
+            } catch (error) {
+                console.error('대시보드 로드 오류:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
             }
         }
 
-        // 주차 선택
-        function selectWeek(week) {
+        // 주차 상세 보기
+        async function viewWeekDetail(week) {
             currentWeek = week;
-            loadWeekSelector();
+            
+            const snapshot = await database.ref(
+                `sessions/${currentSession}/responses/${currentUser}/week${week}`
+            ).once('value');
+            
+            const weekData = snapshot.val();
+            
+            if (!weekData) return;
+            
+            showResults(weekData);
+        }
+
+        // 설문 시작
+        function startWeekSurvey(week) {
+            currentWeek = week;
+            document.getElementById('surveyTitle').textContent = `${week}주차 설문 작성`;
             loadSurvey();
+            showScreen('survey-screen');
+        }
+
+        // 대시보드로 돌아가기
+        function backToDashboard() {
+            loadParticipantDashboard();
+            showScreen('participant-dashboard-screen');
         }
 
         // 설문 로드
-        function loadSurvey() {
+        async function loadSurvey() {
             const content = document.getElementById('surveyContent');
             content.innerHTML = '';
             responses = {};
 
-            // 이전 응답 불러오기
-            if (database && currentUser) {
-                database.ref(`responses/${currentUser}/week${currentWeek}`).once('value').then((snapshot) => {
-                    const previousResponses = snapshot.val();
+            if (!database || !currentSession || !currentUser) return;
+
+            try {
+                const snapshot = await database.ref(
+                    `sessions/${currentSession}/responses/${currentUser}/week${currentWeek}`
+                ).once('value');
+                
+                const previousResponses = snapshot.val();
+                
+                surveyData.categories.forEach((category, catIndex) => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
                     
-                    surveyData.categories.forEach((category, catIndex) => {
-                        const categoryDiv = document.createElement('div');
-                        categoryDiv.className = 'category';
+                    let categoryHTML = `
+                        <div class="category-header">
+                            <span class="category-icon">${category.icon}</span>
+                            <div>
+                                <div class="category-title">${category.title}</div>
+                                <div class="category-desc">${category.description}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    category.questions.forEach((question, qIndex) => {
+                        const qId = `${category.id}_${qIndex}`;
+                        const prevValue = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.value || '';
+                        const prevNote = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.note || '';
                         
-                        let categoryHTML = `
-                            <div class="category-header">
-                                <span class="category-icon">${category.icon}</span>
-                                <div>
-                                    <div class="category-title">${category.title}</div>
-                                    <div class="category-desc">${category.description}</div>
+                        categoryHTML += `
+                            <div class="question">
+                                <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${question}</div>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''}>
+                                        <label for="${qId}_1">전혀 아니다<br>(1점)</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''}>
+                                        <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''}>
+                                        <label for="${qId}_3">자주 그렇다<br>(3점)</label>
+                                    </div>
                                 </div>
+                                <textarea class="note-input" placeholder="특이사항 (선택사항)" id="${qId}_note">${prevNote}</textarea>
                             </div>
                         `;
-                        
-                        category.questions.forEach((question, qIndex) => {
-                            const qId = `${category.id}_${qIndex}`;
-                            const prevValue = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.value || '';
-                            const prevNote = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.note || '';
-                            
-                            categoryHTML += `
-                                <div class="question">
-                                    <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${question}</div>
-                                    <div class="radio-group">
-                                        <div class="radio-option">
-                                            <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''}>
-                                            <label for="${qId}_1">전혀 아니다<br>(1점)</label>
-                                        </div>
-                                        <div class="radio-option">
-                                            <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''}>
-                                            <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
-                                        </div>
-                                        <div class="radio-option">
-                                            <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''}>
-                                            <label for="${qId}_3">자주 그렇다<br>(3점)</label>
-                                        </div>
-                                    </div>
-                                    <textarea class="note-input" placeholder="특이사항 (선택사항)" id="${qId}_note">${prevNote}</textarea>
-                                </div>
-                            `;
-                        });
-                        
-                        categoryDiv.innerHTML = categoryHTML;
-                        content.appendChild(categoryDiv);
                     });
                     
-                    updateProgress();
+                    categoryDiv.innerHTML = categoryHTML;
+                    content.appendChild(categoryDiv);
                 });
+                
+                updateProgress();
+            } catch (error) {
+                console.error('설문 로드 오류:', error);
             }
         }
 
@@ -707,7 +930,7 @@
         }
 
         // 설문 제출
-        function submitSurvey() {
+        async function submitSurvey() {
             const { data, allAnswered } = collectResponses();
             
             if (!allAnswered) {
@@ -715,20 +938,32 @@
                 return;
             }
             
-            if (!database || !currentUser) {
+            if (!database || !currentSession || !currentUser) {
                 alert('로그인이 필요합니다.');
                 return;
             }
             
-            database.ref(`responses/${currentUser}/week${currentWeek}`).set(data).then(() => {
-                showResults(data);
-            });
+            try {
+                await database.ref(
+                    `sessions/${currentSession}/responses/${currentUser}/week${currentWeek}`
+                ).set(data);
+                
+                alert('제출이 완료되었습니다!');
+                
+                // 대시보드로 돌아가기
+                await loadParticipantDashboard();
+                showScreen('participant-dashboard-screen');
+                
+            } catch (error) {
+                console.error('제출 오류:', error);
+                alert('제출 중 오류가 발생했습니다: ' + error.message);
+            }
         }
 
         // 결과 표시
         function showResults(data) {
             const content = document.getElementById('resultContent');
-            content.innerHTML = '<h3 style="margin-bottom: 20px;">이번 주차 결과</h3>';
+            content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
             
             surveyData.categories.forEach(category => {
                 const categoryData = data.categories[category.id];
@@ -751,176 +986,182 @@
                 content.appendChild(resultCard);
             });
             
-            loadWeekHistory();
             showScreen('result-screen');
         }
 
-        // 주차별 이력 로드
-        function loadWeekHistory() {
-            const historyDiv = document.getElementById('weekHistory');
-            historyDiv.innerHTML = '<h3 style="grid-column: 1/-1; margin-bottom: 10px;">주차별 완료 현황</h3>';
-            
-            if (!database || !currentUser) return;
-            
-            database.ref(`responses/${currentUser}`).once('value').then((snapshot) => {
-                const allResponses = snapshot.val() || {};
+        // 관리자 페이지 로드
+        async function loadAdminPage() {
+            try {
+                const sessionsSnapshot = await database.ref('sessions').once('value');
+                const sessions = sessionsSnapshot.val() || {};
                 
-                for (let i = 1; i <= 4; i++) {
-                    const weekCard = document.createElement('div');
-                    weekCard.className = 'week-card';
-                    if (allResponses[`week${i}`]) {
-                        weekCard.classList.add('completed');
-                    }
-                    weekCard.innerHTML = `
-                        <div style="font-weight: 700; margin-bottom: 5px;">${i}주차</div>
-                        <div style="font-size: 12px; color: ${allResponses[`week${i}`] ? '#28a745' : '#999'};">
-                            ${allResponses[`week${i}`] ? '✓ 완료' : '미완료'}
-                        </div>
-                    `;
-                    historyDiv.appendChild(weekCard);
-                }
-            });
-        }
-
-        // 설문으로 돌아가기
-        function backToSurvey() {
-            showScreen('survey-screen');
-        }
-
-        // 관리자 로그인 화면 표시
-        function showAdmin() {
-            showScreen('admin-login-screen');
-        }
-
-        // 관리자 로그인
-        function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            const errorDiv = document.getElementById('adminLoginError');
-            
-            if (password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('adminAuthenticated', 'true');
-                document.getElementById('adminPassword').value = '';
-                errorDiv.style.display = 'none';
-                loadParticipants();
-                showScreen('admin-screen');
-            } else {
-                errorDiv.textContent = '비밀번호가 올바르지 않습니다.';
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        // 관리자 로그아웃
-        function adminLogout() {
-            sessionStorage.removeItem('adminAuthenticated');
-            showScreen('login-screen');
-        }
-
-        // 관리자 인증 확인
-        function checkAdminAuth() {
-            return sessionStorage.getItem('adminAuthenticated') === 'true';
-        }
-
-        // 참가자 목록 로드
-        function loadParticipants() {
-            if (!checkAdminAuth()) {
-                alert('관리자 권한이 필요합니다.');
-                showScreen('login-screen');
-                return;
-            }
-            
-            const list = document.getElementById('participantList');
-            list.innerHTML = '<div style="text-align: center; color: #999;">로딩 중...</div>';
-            
-            if (!database) {
-                list.innerHTML = '<div style="text-align: center; color: #721c24;">Firebase가 설정되지 않았습니다.</div>';
-                return;
-            }
-            
-            database.ref('participants').once('value').then((snapshot) => {
-                const participants = snapshot.val() || {};
-                list.innerHTML = '';
+                const container = document.getElementById('adminContent');
+                container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>👨‍💼 관리자 페이지</h2>
+                        <button class="btn btn-secondary" onclick="logout()" style="width: auto; padding: 10px 20px;">로그아웃</button>
+                    </div>
+                `;
                 
-                if (Object.keys(participants).length === 0) {
-                    list.innerHTML = '<div style="text-align: center; color: #999;">등록된 참가자가 없습니다.</div>';
+                if (Object.keys(sessions).length === 0) {
+                    container.innerHTML += '<div style="text-align: center; color: #999; padding: 40px;">등록된 회차가 없습니다.</div>';
                     return;
                 }
                 
-                Object.keys(participants).forEach(code => {
-                    const item = document.createElement('div');
-                    item.className = 'participant-item';
-                    item.innerHTML = `
-                        <div>
-                            <strong>${code}</strong>
-                            <div style="font-size: 12px; color: #666;">가입일: ${participants[code].createdAt}</div>
-                        </div>
-                        <button onclick="deleteParticipant('${code}')" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">삭제</button>
-                    `;
-                    list.appendChild(item);
-                });
-            });
-        }
-
-        // 참가자 추가
-        function addParticipant() {
-            if (!checkAdminAuth()) {
-                alert('관리자 권한이 필요합니다.');
-                return;
-            }
-            
-            const code = document.getElementById('newParticipantCode').value.trim();
-            if (!code) {
-                alert('참가자 코드를 입력해주세요.');
-                return;
-            }
-            
-            if (!database) {
-                alert('Firebase가 설정되지 않았습니다.');
-                return;
-            }
-            
-            database.ref('participants/' + code).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    alert('이미 존재하는 코드입니다.');
-                } else {
-                    database.ref('participants/' + code).set({
-                        createdAt: new Date().toISOString().split('T')[0]
-                    }).then(() => {
-                        alert('참가자가 추가되었습니다.');
-                        document.getElementById('newParticipantCode').value = '';
-                        loadParticipants();
+                for (const [sessionId, sessionData] of Object.entries(sessions)) {
+                    const sessionDiv = document.createElement('div');
+                    sessionDiv.className = 'session-card';
+                    
+                    const participants = sessionData.participants || {};
+                    const responses = sessionData.responses || {};
+                    const participantCount = Object.keys(participants).length;
+                    
+                    // 완료율 계산
+                    let totalWeeks = participantCount * 4;
+                    let completedWeeks = 0;
+                    
+                    Object.values(responses).forEach(userResponses => {
+                        completedWeeks += Object.keys(userResponses).length;
                     });
+                    
+                    const completionRate = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
+                    
+                    sessionDiv.innerHTML = `
+                        <h3>📅 ${sessionId} ${sessionData.startDate ? `(${sessionData.startDate})` : ''}</h3>
+                        <div class="session-stats">
+                            <div>참가자: ${participantCount}명</div>
+                            <div>완료율: ${completionRate}% (${completedWeeks}/${totalWeeks})</div>
+                        </div>
+                        <button class="btn" onclick="viewSessionDetail('${sessionId}')">상세 보기</button>
+                    `;
+                    
+                    container.appendChild(sessionDiv);
                 }
-            });
-        }
-
-        // 참가자 삭제
-        function deleteParticipant(code) {
-            if (!checkAdminAuth()) {
-                alert('관리자 권한이 필요합니다.');
-                return;
+            } catch (error) {
+                console.error('관리자 페이지 로드 오류:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
             }
-            
-            if (!confirm(`${code} 참가자를 삭제하시겠습니까?`)) return;
-            
-            if (!database) return;
-            
-            database.ref('participants/' + code).remove().then(() => {
-                alert('삭제되었습니다.');
-                loadParticipants();
-            });
         }
 
-        // 로그인 화면으로
-        function backToLogin() {
-            showScreen('login-screen');
+        // 회차 상세 보기
+        async function viewSessionDetail(sessionId) {
+            try {
+                const sessionSnapshot = await database.ref(`sessions/${sessionId}`).once('value');
+                const sessionData = sessionSnapshot.val();
+                
+                const participants = sessionData.participants || {};
+                const responses = sessionData.responses || {};
+                
+                const container = document.getElementById('adminContent');
+                container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>📅 ${sessionId} 상세</h2>
+                        <button class="btn btn-secondary" onclick="loadAdminPage()" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
+                    </div>
+                `;
+                
+                // 참가자별 진행 상황
+                for (const [userId, userData] of Object.entries(participants)) {
+                    const userResponses = responses[userId] || {};
+                    const completedWeeks = Object.keys(userResponses).length;
+                    
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'participant-item';
+                    userDiv.innerHTML = `
+                        <div>
+                            <strong>${userId}</strong> (코드: ${userData.accessCode})
+                            <div style="font-size: 12px; color: #666;">
+                                진행: ${completedWeeks}/4주 완료
+                                ${userData.lastAccess ? `| 마지막 접속: ${new Date(userData.lastAccess).toLocaleString('ko-KR')}` : ''}
+                            </div>
+                        </div>
+                        <button class="btn" onclick="viewUserResponses('${sessionId}', '${userId}')" style="width: auto; padding: 10px 20px;">응답 보기</button>
+                    `;
+                    
+                    container.appendChild(userDiv);
+                }
+            } catch (error) {
+                console.error('회차 상세 로드 오류:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 사용자 응답 보기
+        async function viewUserResponses(sessionId, userId) {
+            try {
+                const responsesSnapshot = await database.ref(`sessions/${sessionId}/responses/${userId}`).once('value');
+                const userResponses = responsesSnapshot.val() || {};
+                
+                const container = document.getElementById('adminContent');
+                container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>📊 ${userId} 응답 결과</h2>
+                        <button class="btn btn-secondary" onclick="viewSessionDetail('${sessionId}')" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
+                    </div>
+                `;
+                
+                for (let week = 1; week <= 4; week++) {
+                    const weekData = userResponses[`week${week}`];
+                    
+                    if (!weekData) {
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'result-card';
+                        emptyDiv.innerHTML = `
+                            <h3>${week}주차</h3>
+                            <div style="color: #999;">미완료</div>
+                        `;
+                        container.appendChild(emptyDiv);
+                        continue;
+                    }
+                    
+                    const weekDiv = document.createElement('div');
+                    weekDiv.className = 'result-card';
+                    weekDiv.innerHTML = `<h3>${week}주차 (${new Date(weekData.timestamp).toLocaleDateString('ko-KR')})</h3>`;
+                    
+                    surveyData.categories.forEach(category => {
+                        const categoryData = weekData.categories[category.id];
+                        if (!categoryData) return;
+                        
+                        const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
+                        
+                        const catDiv = document.createElement('div');
+                        catDiv.style.marginTop = '10px';
+                        catDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>${category.icon} ${category.title}</div>
+                                <div>
+                                    <strong>${categoryData.total}점</strong>
+                                    <span class="sensitivity ${sensitivity.level}">${sensitivity.text}</span>
+                                </div>
+                            </div>
+                        `;
+                        
+                        weekDiv.appendChild(catDiv);
+                    });
+                    
+                    container.appendChild(weekDiv);
+                }
+            } catch (error) {
+                console.error('사용자 응답 로드 오류:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+            }
         }
 
         // 페이지 로드 시 자동 로그인 시도
         window.onload = function() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser && database) {
-                document.getElementById('participantCode').value = savedUser;
-                login();
+            const savedSession = sessionStorage.getItem('currentSession');
+            const savedUser = sessionStorage.getItem('currentUser');
+            const savedIsAdmin = sessionStorage.getItem('isAdmin');
+            
+            if (savedIsAdmin === 'true' && database) {
+                isAdmin = true;
+                loadAdminPage();
+                showScreen('admin-screen');
+            } else if (savedSession && savedUser && database) {
+                currentSession = savedSession;
+                currentUser = savedUser;
+                loadParticipantDashboard();
+                showScreen('participant-dashboard-screen');
             }
             
             // 진행률 업데이트 이벤트 리스너
@@ -929,6 +1170,16 @@
                     updateProgress();
                 }
             });
+
+            // Enter 키로 로그인
+            const loginInput = document.getElementById('loginInput');
+            if (loginInput) {
+                loginInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
         };
     </script>
 </body>
