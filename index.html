@@ -967,7 +967,7 @@
             content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
             
             // surveyData의 카테고리 순서대로 반복
-            surveyData.categories.forEach((category) => {
+            surveyData.categories.forEach((category, catIndex) => {
                 const categoryData = data[category.id];
                 
                 if (!categoryData || !categoryData.questions) return;
