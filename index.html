@@ -860,7 +860,7 @@
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'category';
 
-                    const categoryResponseData = previousResponses?.categories?.[category.id];
+                    const categoryResponseData = previousResponses?.[category.id];
                     
                     // [재사용] 헤더 + 질문 폼 (수정 가능 모드)
                     categoryDiv.innerHTML = 
@@ -967,8 +967,8 @@
             content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
             
             // surveyData의 카테고리 순서대로 반복
-            surveyData.categories.forEach((category, catIndex) => {
-                const categoryData = data.categories[category.id];
+            surveyData.categories.forEach((category) => {
+                const categoryData = data[category.id];
                 
                 if (!categoryData || !categoryData.questions) return;
 
@@ -1196,7 +1196,7 @@
                     weekDiv.innerHTML = `<h3>${week}주차 (${new Date(weekData.timestamp).toLocaleDateString('ko-KR')})</h3>`;
 
                     userSurveyTemplate.categories.forEach((category) => {
-                        const categoryData = weekData.categories[category.id];
+                        const categoryData = weekData[category.id];
                         if (!categoryData) return;
                         
                         const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
