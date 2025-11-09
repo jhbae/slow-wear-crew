@@ -966,7 +966,12 @@
 
         // 결과 표시
         function showResults(data) {
-            ategoryData = data.categories[category.id];
+            const content = document.getElementById('resultContent');
+            content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
+            
+            // surveyData의 카테고리 순서대로 반복
+            surveyData.categories.forEach((category, catIndex) => {
+                const categoryData = data.categories[category.id];
                 if (!categoryData) return;
 
                 // 1. 민감도 및 총점 계산
