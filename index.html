@@ -710,13 +710,17 @@
                         let categoryScores = '';
                         surveyData.categories.forEach(category => {
                             const catData = weekData.categories[category.id];
-                            if (catData) {
-                                const sensitivity = calculateSensitivity(catData.total, category.scoreRange);
+                            // ✅ [수정] catData가 있고, questions가 있을 때만 계산
+                            if (catData && catData.questions) {
+                                // ✅ [수정] 점수를 동적으로 계산
+                                const calculatedTotal = catData.questions.reduce((sum, q) => sum + q.value, 0);
+                                const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
+                                
                                 categoryScores += `
                                     <div class="score-item">
                                         <span>${category.icon} ${category.title}</span>
                                         <span>
-                                            <strong>${catData.total}점</strong>
+                                            <strong>${calculatedTotal}점</strong>
                                             <span class="sensitivity ${sensitivity.level}">${sensitivity.text}</span>
                                         </span>
                                     </div>
@@ -903,8 +907,7 @@
             
             surveyData.categories.forEach(category => {
                 data.categories[category.id] = {
-                    questions: [],
-                    total: 0
+                    questions: []
                 };
                 
                 category.questions.forEach((_, qIndex) => {
@@ -921,7 +924,6 @@
                         value: value,
                         note: note
                     });
-                    data.categories[category.id].total += value;
                 });
             });
             
@@ -970,13 +972,14 @@
             // surveyData의 카테고리 순서대로 반복
             surveyData.categories.forEach((category, catIndex) => {
                 const categoryData = data.categories[category.id];
-                if (!categoryData) return;
+                if (!categoryData || !categoryData.questions) return;
 
                 // 1. 민감도 및 총점 계산
                 const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
                 
                 // 2. [재사용] 질문 폼만 생성 (읽기 전용 모드)
                 // (카테고리 헤더는 result-header가 대신하므로 여기선 호출 X)
+                const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
                 const questionsHTML = buildQuestionsHTML(category, catIndex, categoryData, true);
                 
                 // 3. 최종 결과 카드 생성
