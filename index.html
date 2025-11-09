@@ -700,9 +700,8 @@
                         weekCard.classList.add('completed');
                         
                         let categoryScores = '';
-                        surveyData.categories.forEach((category, catIndex) => {
-                            // ✅ [수정] catIndex를 키로 사용
-                            const catData = weekData.categories[`cat${catIndex}`];
+                        surveyData.categories.forEach((category) => {
+                            const catData = weekData.categories[category.id];
                             
                             // ✅ [수정] catData가 있고, questions가 있을 때만 계산
                             if (catData && catData.questions) {
@@ -817,7 +816,7 @@
                 
                 questionsHTML += `
                     <div class="question">
-                        <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${questionText}</div>
+                        <div class="question-text">${qIndex + 1}-${qIndex + 1}. ${questionText}</div>
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
@@ -860,9 +859,8 @@
                 surveyData.categories.forEach((category, catIndex) => {
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'category';
-                    
-                    // ✅ [수정] catIndex 기준으로 데이터 조회
-                    const categoryResponseData = previousResponses?.categories?.[`cat${catIndex}`];
+
+                    const categoryResponseData = previousResponses?.categories?.[category.id];
                     
                     // [재사용] 헤더 + 질문 폼 (수정 가능 모드)
                     categoryDiv.innerHTML = 
@@ -899,16 +897,13 @@
         // 응답 수집
         function collectResponses() {
             const data = {
-                categories: {},
                 timestamp: new Date().toISOString()
             };
             
             let allAnswered = true;
             
             surveyData.categories.forEach((category, catIndex) => {
-                // ✅ [수정] catIndex를 키로 사용
-                const categoryKey = `cat${catIndex}`; 
-                data.categories[categoryKey] = {
+                data.categories[category.id] = {
                     questions: []
                 };
                 
@@ -922,7 +917,7 @@
                     }
                     
                     const value = selected ? parseInt(selected.value) : 0;
-                    data.categories[categoryKey].questions.push({
+                    data.categories[category.id].questions.push({
                         value: value,
                         note: note
                     });
@@ -973,9 +968,7 @@
             
             // surveyData의 카테고리 순서대로 반복
             surveyData.categories.forEach((category, catIndex) => {
-                // ✅ [수정] catIndex를 키로 사용
-                const categoryKey = `cat${catIndex}`;
-                const categoryData = data.categories[categoryKey];
+                const categoryData = data.categories[category.id];
                 
                 if (!categoryData || !categoryData.questions) return;
 
@@ -1201,11 +1194,9 @@
                     const weekDiv = document.createElement('div');
                     weekDiv.className = 'result-card';
                     weekDiv.innerHTML = `<h3>${week}주차 (${new Date(weekData.timestamp).toLocaleDateString('ko-KR')})</h3>`;
-                    
-                    // ✅ [수정] 로드한 템플릿 데이터 사용
-                    userSurveyTemplate.categories.forEach((category, catIndex) => {
-                        const categoryKey = `cat${catIndex}`; // catIndex 키 사용
-                        const categoryData = weekData.categories[categoryKey];
+
+                    userSurveyTemplate.categories.forEach((category) => {
+                        const categoryData = weekData.categories[category.id];
                         if (!categoryData) return;
                         
                         const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
