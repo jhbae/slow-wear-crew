@@ -690,8 +690,10 @@
                 // 주차별 카드
                 const weekGrid = document.getElementById('weekGrid');
                 weekGrid.innerHTML = '';
+
+                const targetWeeks = [1, 4];
                 
-                for (let week = 1; week <= 4; week++) {
+                for (const week of targetWeeks) {
                     const weekData = myResponses[`week${week}`];
                     const weekCard = document.createElement('div');
                     weekCard.className = 'week-card-large';
@@ -1076,12 +1078,13 @@
                     const participantCount = participantIds.length;
                     
                     // 완료율 계산
-                    let totalWeeks = participantCount * 4;
+                    let totalWeeks = participantCount * 2;
                     let completedWeeks = 0;
                     
                     participantIds.forEach(userId => {
                         const userResponses = allResponses[userId] || {};
-                        completedWeeks += Object.keys(userResponses).length;
+                        if (userResponses['week1']) completedWeeks++;
+                        if (userResponses['week4']) completedWeeks++;
                     });
                     
                     const completionRate = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
@@ -1207,7 +1210,8 @@
                     </div>
                 `;
                 
-                for (let week = 1; week <= 4; week++) {
+                const targetWeeks = [1, 4];
+                for (const week of targetWeeks) {
                     const weekData = userResponses[`week${week}`];
                     
                     if (!weekData) {
