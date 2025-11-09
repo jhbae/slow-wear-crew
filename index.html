@@ -858,7 +858,7 @@
 
                 // ✅ [추가] 임시 저장 데이터 로드 및 병합 (Firebase 데이터보다 우선)
                 const storageKey = `draft_week${currentWeek}_${currentUser}`;
-                const draftString = sessionStorage.getItem(storageKey);
+                const draftString = localStorage.getItem(storageKey);
                 
                 if (draftString) {
                     const draftData = JSON.parse(draftString);
@@ -912,7 +912,7 @@
             // 데이터가 유효할 때만 저장 (로그인되지 않은 경우 등 제외)
             if (currentUser && tempResponses.data) {
                 const storageKey = `draft_week${currentWeek}_${currentUser}`;
-                sessionStorage.setItem(storageKey, JSON.stringify(tempResponses.data));
+                localStorage.setItem(storageKey, JSON.stringify(tempResponses.data));
             }
         }
 
@@ -977,7 +977,7 @@
 
                 // 임시 저장 데이터 삭제
                 const storageKey = `draft_week${currentWeek}_${currentUser}`;
-                sessionStorage.removeItem(storageKey);
+                localStorage.removeItem(storageKey);
                 
                 alert('제출이 완료되었습니다!');
                 
