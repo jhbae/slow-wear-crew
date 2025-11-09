@@ -812,65 +812,88 @@
             showScreen('participant-dashboard-screen');
         }
 
+        // [새로 추가] 설문 폼을 생성하는 재사용 가능한 함수
+        // containerElement: 폼을 삽입할 DOM 요소 (예: #surveyContent)
+        // responseData: 폼에 채워 넣을 기존 응답 데이터
+        // isReadOnly: true로 설정하면 '읽기 전용' (disabled) 상태가 됨
+        function buildSurveyForm(containerElement, responseData, isReadOnly) {
+            containerElement.innerHTML = ''; // 컨테이너 비우기
+            
+            const disabledAttribute = isReadOnly ? 'disabled' : '';
+            const readonlyAttribute = isReadOnly ? 'readonly' : ''; // textarea는 disabled 대신 readonly
+
+            surveyData.categories.forEach((category, catIndex) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                let categoryHTML = `
+                    <div class="category-header">
+                        <span class="category-icon">${category.icon}</span>
+                        <div>
+                            <div class="category-title">${category.title}</div>
+                            <div class="category-desc">${category.description}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // 카테고리별 응답 데이터
+                const categoryResponseData = responseData?.categories?.[category.id];
+
+                category.questions.forEach((question, qIndex) => {
+                    const qId = `${category.id}_${qIndex}`;
+                    
+                    // 기존 응답 데이터 찾기 (문자열로 변환하여 비교)
+                    const prevValue = categoryResponseData?.questions?.[qIndex]?.value.toString() || '';
+                    const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
+                    
+                    categoryHTML += `
+                        <div class="question">
+                            <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${question}</div>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
+                                    <label for="${qId}_1">전혀 아니다<br>(1점)</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''} ${disabledAttribute}>
+                                    <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''} ${disabledAttribute}>
+                                    <label for="${qId}_3">자주 그렇다<br>(3점)</label>
+                                </div>
+                            </div>
+                            <textarea class="note-input" placeholder="특이사항 없음" id="${qId}_note" ${readonlyAttribute}>${prevNote}</textarea>
+                        </div>
+                    `;
+                });
+                
+                categoryDiv.innerHTML = categoryHTML;
+                containerElement.appendChild(categoryDiv);
+            });
+        }
+
         // 설문 로드
         async function loadSurvey() {
             const content = document.getElementById('surveyContent');
-            content.innerHTML = '';
 
-            if (!database || !currentUser) return;
+            if (!database || !currentUser) {
+                content.innerHTML = '로그인이 필요합니다.';
+                return;
+            }
 
             try {
+                // 기존 응답 데이터 가져오기
                 const snapshot = await database.ref(`responses/${currentUser}/week${currentWeek}`).once('value');
-                const previousResponses = snapshot.val();
+                const previousResponses = snapshot.val(); // (예: {categories: {...}, timestamp: ...})
                 
-                surveyData.categories.forEach((category, catIndex) => {
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'category';
-                    
-                    let categoryHTML = `
-                        <div class="category-header">
-                            <span class="category-icon">${category.icon}</span>
-                            <div>
-                                <div class="category-title">${category.title}</div>
-                                <div class="category-desc">${category.description}</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    category.questions.forEach((question, qIndex) => {
-                        const qId = `${category.id}_${qIndex}`;
-                        const prevValue = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.value || '';
-                        const prevNote = previousResponses?.categories?.[category.id]?.questions?.[qIndex]?.note || '';
-                        
-                        categoryHTML += `
-                            <div class="question">
-                                <div class="question-text">${catIndex + 1}-${qIndex + 1}. ${question}</div>
-                                <div class="radio-group">
-                                    <div class="radio-option">
-                                        <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''}>
-                                        <label for="${qId}_1">전혀 아니다<br>(1점)</label>
-                                    </div>
-                                    <div class="radio-option">
-                                        <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''}>
-                                        <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
-                                    </div>
-                                    <div class="radio-option">
-                                        <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''}>
-                                        <label for="${qId}_3">자주 그렇다<br>(3점)</label>
-                                    </div>
-                                </div>
-                                <textarea class="note-input" placeholder="특이사항 (선택사항)" id="${qId}_note">${prevNote}</textarea>
-                            </div>
-                        `;
-                    });
-                    
-                    categoryDiv.innerHTML = categoryHTML;
-                    content.appendChild(categoryDiv);
-                });
+                // [수정] 재사용 함수 호출 (수정 가능 모드: isReadOnly = false)
+                buildSurveyForm(content, previousResponses, false);
                 
-                updateProgress();
+                updateProgress(); // 진행률 업데이트
             } catch (error) {
                 console.error('설문 로드 오류:', error);
+                content.innerHTML = '설문 로드 중 오류가 발생했습니다.';
             }
         }
 
@@ -966,63 +989,13 @@
         // 결과 표시
         function showResults(data) {
             const content = document.getElementById('resultContent');
-            content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
             
-            // surveyData의 카테고리 순서대로 반복
-            surveyData.categories.forEach(category => {
-                // 이 카테고리에 대한 실제 응답 데이터
-                const categoryData = data.categories[category.id];
-                if (!categoryData) return; // 데이터 없으면 건너뛰기
-
-                // 민감도 계산 (버그 수정: category.scoreRange 사용)
-                const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
-                
-                // --- 개별 문항 응답 HTML 생성 ---
-                let questionsHTML = '<div class="question-details">';
-                
-                // surveyData의 질문 텍스트와 응답 데이터를 1:1 매칭
-                category.questions.forEach((questionText, qIndex) => {
-                    // 이 질문에 대한 응답 값 (value, note)
-                    const answerData = categoryData.questions[qIndex];
-                    
-                    // 점수(value)를 텍스트로 변환
-                    let answerText = "응답 없음";
-                    if (answerData.value === 1) answerText = "1점 (전혀 아니다)";
-                    else if (answerData.value === 2) answerText = "2점 (가끔 그렇다)";
-                    else if (answerData.value === 3) answerText = "3점 (자주 그렇다)";
-                    
-                    // 개별 질문을 위한 HTML
-                    questionsHTML += `
-                        <div class="question-result-item">
-                            <div class="question-text">${qIndex + 1}. ${questionText}</div>
-                            <div class="answer-value"><strong>응답:</strong> ${answerText}</div>
-                            ${answerData.note ? `<div class="answer-note"><strong>특이사항:</strong> ${answerData.note}</div>` : ''}
-                        </div>
-                    `;
-                });
-                
-                questionsHTML += '</div>';
-                // --- HTML 생성 끝 ---
-
-                // 최종 결과 카드 생성
-                const resultCard = document.createElement('div');
-                resultCard.className = 'result-card';
-                resultCard.innerHTML = `
-                    <div class="result-header">
-                        <div class="result-title">
-                            <span>${category.icon}</span>
-                            <span>${category.title}</span>
-                        </div>
-                        <div class="result-score">${categoryData.total}점</div>
-                    </div>
-                    <div>
-                        <span class="sensitivity ${sensitivity.level}">민감도: ${sensitivity.text}</span>
-                    </div>
-                    <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;">
-                    ${questionsHTML}
-                `;
-                content.appendChild(resultCard);
-            });
+            // [수정] 총점/민감도 제거, 제목만 표시
+            content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과 (확인)</h3>`;
+            
+            // [수정] 재사용 함수 호출 (읽기 전용 모드: isReadOnly = true)
+            // 'data' 객체를 그대로 넘겨주어 폼을 채웁니다.
+            buildSurveyForm(content, data, true);
             
             showScreen('result-screen');
         }
