@@ -608,8 +608,7 @@
                     isAdmin = true;
                     sessionStorage.setItem('isAdmin', 'true');
                     sessionStorage.setItem('adminPassword', input);
-                    await loadAdminPage();
-                    showScreen('admin-screen');
+                    location.hash = '#admin';
                     return;
                 }
                 
@@ -638,8 +637,7 @@
                         .set(new Date().toISOString());
                     
                     // 참가자 대시보드로!
-                    await loadParticipantDashboard();
-                    showScreen('participant-dashboard-screen');
+                    location.hash = '#dashboard';
                 } else {
                     alert('유효하지 않은 코드 또는 비밀번호입니다.');
                 }
@@ -658,7 +656,8 @@
             adminSessionList = [];
             sessionStorage.clear();
             document.getElementById('loginInput').value = '';
-            showScreen('login-screen');
+            
+            location.hash = '#login';
         }
 
         // 참가자 대시보드 로드
@@ -733,7 +732,7 @@
                             <div class="week-content">
                                 ${categoryScores}
                             </div>
-                            <button class="btn" onclick="viewWeekDetail(${week})">상세 보기</button>
+                            <button class="btn" onclick="onclick="location.hash = '#week${week}'">상세 보기</button>
                         `;
                     } else {
                         weekCard.innerHTML = `
@@ -746,7 +745,7 @@
                                     아직 작성하지 않았습니다
                                 </div>
                             </div>
-                            <button class="btn" onclick="startWeekSurvey(${week})">설문 시작</button>
+                            <button class="btn" onclick="location.hash = '#survey${week}'">설문 시작</button>
                         `;
                     }
                     
@@ -782,7 +781,8 @@
         // 대시보드로 돌아가기
         function backToDashboard() {
             loadParticipantDashboard();
-            showScreen('participant-dashboard-screen');
+            
+            location.hash = '#dashboard';
         }
 
         // [새로 추가] 카테고리 헤더 HTML 생성 (재사용)
@@ -955,9 +955,7 @@
                 
                 alert('제출이 완료되었습니다!');
                 
-                await loadParticipantDashboard();
-                showScreen('participant-dashboard-screen');
-                
+                location.hash = '#dashboard';
             } catch (error) {
                 console.error('제출 오류:', error);
                 alert('제출 중 오류가 발생했습니다: ' + error.message);
@@ -1210,23 +1208,75 @@
             }
         }
 
-        // 페이지 로드 시 자동 로그인 시도
-        window.onload = function() {
+        async function handleRouteChange() {
+            // 현재 해시값 (예: #week1, #dashboard)
+            // 해시가 없으면 '#login'을 기본값으로 사용
+            const hash = window.location.hash || '#login';
+            
+            // 1-1. 모든 화면을 일단 숨깁니다.
+            document.querySelectorAll('.login-screen, .participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // 1-2. 해시 값에 따라 적절한 함수를 호출하고 화면을 보여줍니다.
+            
+            // --- (A) 인증이 필요한 페이지 ---
+            // 세션에서 로그인 정보 확인
             const savedUser = sessionStorage.getItem('currentUser');
-            const savedSessionId = sessionStorage.getItem('currentSessionId');
             const savedIsAdmin = sessionStorage.getItem('isAdmin');
             
-            if (savedIsAdmin === 'true' && database) {
-                isAdmin = true;
-                loadAdminPage();
-                showScreen('admin-screen');
-            } else if (savedUser && savedSessionId && database) {
+            if (hash === '#dashboard') {
+                if (!savedUser) { 
+                    location.hash = '#login'; // 로그인 안됐으면 로그인으로
+                    return; 
+                }
                 currentUser = savedUser;
-                currentSessionId = savedSessionId;
-                loadParticipantDashboard();
-                showScreen('participant-dashboard-screen');
+                currentSessionId = sessionStorage.getItem('currentSessionId');
+                await loadParticipantDashboard(); // 데이터 로드
+                showScreen('participant-dashboard-screen'); // 화면 표시
+                
+            } else if (hash === '#admin') {
+                if (!savedIsAdmin) { 
+                    location.hash = '#login'; // 관리자 아니면 로그인으로
+                    return; 
+                }
+                isAdmin = true;
+                await loadAdminPage(); // 데이터 로드
+                showScreen('admin-screen'); // 화면 표시
+
+            // --- (B) 주차별 페이지 (숫자 파싱) ---
+            } else if (hash.startsWith('#week')) {
+                if (!savedUser) { location.hash = '#login'; return; }
+                const week = parseInt(hash.replace('#week', ''));
+                currentUser = savedUser; // viewWeekDetail이 currentUser를 사용
+                await viewWeekDetail(week); // 기존 함수 호출 (이 함수가 showResults -> showScreen을 호출)
+                
+            } else if (hash.startsWith('#survey')) {
+                if (!savedUser) { location.hash = '#login'; return; }
+                const week = parseInt(hash.replace('#survey', ''));
+                currentUser = savedUser; // startWeekSurvey가 currentUser를 사용
+                startWeekSurvey(week); // 기존 함수 호출 (이 함수가 showScreen을 호출)
+
+            // --- (C) 로그인 페이지 ---
+            } else { // '#login' 또는 알 수 없는 해시
+                // 이미 로그인 상태인지 확인
+                if (savedIsAdmin) {
+                    location.hash = '#admin'; // 관리자면 어드민으로 리다이렉트
+                } else if (savedUser) {
+                    location.hash = '#dashboard'; // 참가자면 대시보드로 리다이렉트
+                } else {
+                    // 로그인 상태가 아니면 로그인 화면 표시
+                    showScreen('login-screen');
+                }
             }
+        }
+
+        // 2. 페이지 로드 시 및 해시 변경 시 라우터 실행
+        window.addEventListener('load', () => {
+            // 라우터 실행
+            handleRouteChange();
             
+            // 기존 onload에 있던 이벤트 리스너들 다시 등록
             document.addEventListener('change', function(e) {
                 if (e.target.type === 'radio') {
                     updateProgress();
@@ -1241,7 +1291,10 @@
                     }
                 });
             }
-        };
+        });
+        
+        window.addEventListener('hashchange', handleRouteChange);
+   
     </script>
 </body>
 </html>
