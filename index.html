@@ -960,7 +960,7 @@
 
         // 설문 제출
         async function submitSurvey() {
-            const { data, allAnswered } = collectResponses();
+            const { data, allAnswered } = collectResponses(true);
             
             if (!allAnswered) {
                 alert('모든 질문에 답해주세요.');
@@ -974,6 +974,10 @@
             
             try {
                 await database.ref(`responses/${currentUser}/week${currentWeek}`).set(data);
+
+                // 임시 저장 데이터 삭제
+                const storageKey = `draft_week${currentWeek}_${currentUser}`;
+                sessionStorage.removeItem(storageKey);
                 
                 alert('제출이 완료되었습니다!');
                 
@@ -1318,8 +1322,11 @@
             
             // 기존 onload에 있던 이벤트 리스너들 다시 등록
             document.addEventListener('change', function(e) {
-                if (e.target.type === 'radio') {
+                if (e.target.type === 'radio' || e.target.tagName === 'TEXTAREA') { // TEXTAREA 변경 감지
                     updateProgress();
+                    if (currentWeek && currentUser) {
+                        saveDraftResponse(currentWeek); // 임시 저장 호출
+                    }
                 }
             });
 
