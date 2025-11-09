@@ -504,72 +504,9 @@
             console.log("Firebase 설정이 필요합니다:", error);
         }
 
-        // 설문 데이터
-        const surveyData = {
-            categories: [
-                {
-                    id: 'touch',
-                    icon: '💆',
-                    title: '1. 촉각',
-                    description: '옷, 손길, 빗, 하네스 등 ‘몸에 닿는 자극’에 대한 반응',
-                    questions: [
-                        '옷이나 하네스를 가까이 가져가면 피하거나 도망가요',
-                        '브러싱, 손길에 몸을 굳히거나 움찔해요',
-                        '특정 부위(발, 귀, 꼬리 등) 터치에 민감하게 반응해요',
-                        '옷감 재질(면, 니트, 방수소재 등)에 따라 반응이 달라요'
-                    ],
-                    scoreRange: { low: [4, 6], medium: [7, 9], high: [10, 12] }
-                },
-                {
-                    id: 'sight',
-                    icon: '👀',
-                    title: '2. 시각',
-                    description: '옷의 색, 모양, 움직임 등 ‘보는 자극’에 대한 반응',
-                    questions: [
-                        '옷이 펄럭이거나 흔들리면 피하거나 물어요',
-                        '옷을 들고 접근하면 행동을 멈추거나 숨어요',
-                        '옷을 보여주면 호기심보다 경계가 앞서요'
-                    ],
-                    scoreRange: { low: [3, 4], medium: [5, 6], high: [7, 9] }
-                },
-                {
-                    id: 'hearing',
-                    icon: '👂',
-                    title: '3. 청각',
-                    description: '지퍼, 벨크로, 단추 등 옷 관련 소리에 대한 반응',
-                    questions: [
-                        '벨크로 찰칵, 지퍼 소리에 놀라거나 멈춰요',
-                        '옷감이 내는 소리에 귀가 과도하게 움직여요',
-                        '옷 입는 동안 소리가 나면 바로 흥분해요'
-                    ],
-                    scoreRange: { low: [3, 4], medium: [5, 6], high: [7, 9] }
-                },
-                {
-                    id: 'proprioception',
-                    icon: '🦮',
-                    title: '4. 고유감각',
-                    description: '몸이 조여지거나 제한될 때의 불편감, 움직임, 조절 능력',
-                    questions: [
-                        '옷을 입으면 걷지 않거나 엎드려버려요',
-                        '옷을 입은 채 움직임이 둔하거나 불안정해요',
-                        '몇 걸음 걷지 않고도 몸을 계속 털어요'
-                    ],
-                    scoreRange: { low: [3, 4], medium: [5, 6], high: [7, 9] }
-                },
-                {
-                    id: 'vestibular',
-                    icon: '🎢',
-                    title: '5. 전정감각',
-                    description: '균형, 중력감각과 관련된 자극에 대한 반응',
-                    questions: [
-                        '옷을 입은 뒤 걷거나 방향 전환이 어색해요 ',
-                        '옷 입은 상태에서 점프나 계단 오르기를 망설여요',
-                        '옷을 입히기 위해 몸을 들거나 자세를 바꾸면 몸을 비틀어요'
-                    ],
-                    scoreRange: { low: [3, 4], medium: [5, 6], high: [7, 9] }
-                }
-            ]
-        };
+        // ✅ [추가] 전역 변수
+        let surveyData = null; // 설문지 템플릿 (Firebase에서 로드)
+        let currentSurveyTemplateId = null; // 현재 세션의 설문지 ID
 
         let currentUser = null;
         let currentSessionId = null;
@@ -583,6 +520,42 @@
                 screen.classList.remove('active');
             });
             document.querySelector(`.${screenName}`).classList.add('active');
+        }
+
+        // ✅ [추가] 설문지 템플릿 로더
+        // surveyData가 로드되었는지 확인하고, 안됐으면 로드하는 함수
+        async function ensureSurveyDataLoaded() {
+            // 1. 이미 로드했다면 즉시 종료
+            if (surveyData) return true; 
+
+            // 2. 세션 저장소에서 템플릿 ID 가져오기 (로그인 시 저장함)
+            currentSurveyTemplateId = sessionStorage.getItem('surveyTemplateId');
+            if (!currentSurveyTemplateId) {
+                alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                logout(); // (location.hash = '#login'으로 대체)
+                return false;
+            }
+
+            try {
+                // 3. Firebase에서 실제 설문지 데이터 로드
+                const surveySnapshot = await database.ref(`surveys/${currentSurveyTemplateId}`).once('value');
+                
+                if (!surveySnapshot.exists()) {
+                    alert('오류: 설문지를 찾을 수 없습니다.');
+                    logout();
+                    return false;
+                }
+                
+                // 4. 전역 변수에 저장
+                surveyData = surveySnapshot.val();
+                return true;
+
+            } catch (error) {
+                console.error('설문지 로드 오류:', error);
+                alert('설문지를 불러오는 중 오류가 발생했습니다.');
+                logout();
+                return false;
+            }
         }
 
         // 통합 로그인 (쿼리 기반)
@@ -624,6 +597,15 @@
                     // 참가자 발견!
                     const userId = Object.keys(participants)[0];
                     const userData = participants[userId];
+
+                    // ✅ [추가] 세션 정보를 가져와서 surveyTemplateId 확보
+                    const sessionSnapshot = await database.ref(`sessions/${userData.sessionId}`).once('value');
+                    const sessionData = sessionSnapshot.val();
+                    
+                    if (!sessionData || !sessionData.surveyTemplateId) {
+                        alert('오류: 이 세션에 할당된 설문지가 없습니다.');
+                        return;
+                    }
                     
                     currentUser = userId;
                     currentSessionId = userData.sessionId;
@@ -631,6 +613,8 @@
                     sessionStorage.setItem('currentUser', userId);
                     sessionStorage.setItem('currentSessionId', userData.sessionId);
                     sessionStorage.setItem('accessCode', input.toUpperCase());
+                    // ✅ [추가] surveyTemplateId를 세션 저장소에 저장 (새로고침 대비)
+                    sessionStorage.setItem('surveyTemplateId', sessionData.surveyTemplateId);
                     
                     // 마지막 접속 시간 업데이트
                     await database.ref(`participants/${userId}/lastAccess`)
@@ -654,6 +638,11 @@
             currentSessionId = null;
             isAdmin = false;
             adminSessionList = [];
+
+            // ✅ [추가] 설문 데이터 초기화
+            surveyData = null;
+            currentSurveyTemplateId = null;
+            
             sessionStorage.clear();
             document.getElementById('loginInput').value = '';
             
@@ -662,6 +651,9 @@
 
         // 참가자 대시보드 로드
         async function loadParticipantDashboard() {
+            // ✅ [추가] 설문지 로드 확인
+            if (!await ensureSurveyDataLoaded()) return;
+            
             if (!currentUser || !currentSessionId) return;
             
             try {
@@ -708,8 +700,10 @@
                         weekCard.classList.add('completed');
                         
                         let categoryScores = '';
-                        surveyData.categories.forEach(category => {
-                            const catData = weekData.categories[category.id];
+                        surveyData.categories.forEach((category, catIndex) => {
+                            // ✅ [수정] catIndex를 키로 사용
+                            const catData = weekData.categories[`cat${catIndex}`];
+                            
                             // ✅ [수정] catData가 있고, questions가 있을 때만 계산
                             if (catData && catData.questions) {
                                 // ✅ [수정] 점수를 동적으로 계산
@@ -764,6 +758,9 @@
 
         // 주차 상세 보기
         async function viewWeekDetail(week) {
+            // ✅ [추가] 설문지 로드 확인
+            if (!await ensureSurveyDataLoaded()) return;
+            
             currentWeek = week;
             
             const snapshot = await database.ref(`responses/${currentUser}/week${week}`).once('value');
@@ -814,8 +811,7 @@
             
             category.questions.forEach((questionText, qIndex) => {
                 // name/id가 설문 폼과 결과 폼에서 충돌하지 않게 prefix 추가
-                const qId = `${isReadOnly ? 'result_' : ''}${category.id}_${qIndex}`; 
-                
+                const qId = `${isReadOnly ? 'result_' : ''}${category.id}_${qIndex}`;
                 const prevValue = categoryResponseData?.questions?.[qIndex]?.value.toString() || '';
                 const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
                 
@@ -844,7 +840,10 @@
         }
 
         // 설문 로드
-        async function loadSurvey() {
+        async function loadSurvey() 
+            // ✅ [추가] 설문지 로드 확인
+            if (!await ensureSurveyDataLoaded()) return;
+        
             const content = document.getElementById('surveyContent');
             content.innerHTML = ''; // 비우기
 
@@ -862,7 +861,8 @@
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'category';
                     
-                    const categoryResponseData = previousResponses?.categories?.[category.id];
+                    // ✅ [수정] catIndex 기준으로 데이터 조회
+                    const categoryResponseData = previousResponses?.categories?.[`cat${catIndex}`];
                     
                     // [재사용] 헤더 + 질문 폼 (수정 가능 모드)
                     categoryDiv.innerHTML = 
@@ -905,8 +905,10 @@
             
             let allAnswered = true;
             
-            surveyData.categories.forEach(category => {
-                data.categories[category.id] = {
+            surveyData.categories.forEach((category, catIndex) => {
+                // ✅ [수정] catIndex를 키로 사용
+                const categoryKey = `cat${catIndex}`; 
+                data.categories[categoryKey] = {
                     questions: []
                 };
                 
@@ -920,7 +922,7 @@
                     }
                     
                     const value = selected ? parseInt(selected.value) : 0;
-                    data.categories[category.id].questions.push({
+                    data.categories[categoryKey].questions.push({
                         value: value,
                         note: note
                     });
@@ -971,7 +973,10 @@
             
             // surveyData의 카테고리 순서대로 반복
             surveyData.categories.forEach((category, catIndex) => {
-                const categoryData = data.categories[category.id];
+                // ✅ [수정] catIndex를 키로 사용
+                const categoryKey = `cat${catIndex}`;
+                const categoryData = data.categories[categoryKey];
+                
                 if (!categoryData || !categoryData.questions) return;
 
                 // 1. 민감도 및 총점 계산
@@ -1141,15 +1146,24 @@
 
         // 사용자 응답 보기
         async function viewUserResponses(userId) {
-            try {
+            napshot = await database.ref(`sessions/${participantData.sessionId}`).once('value');
+                const sessionData = sessionSnapshot.val();
+                if (!sessionData) {
+                    alert('세션 정보를 찾을 수 없습니다.');
+                    return;
+                }
+
+                // 2. 해당 템플릿 ID로 설문지 로드 (변수 이름 변경)
+                const templateSnapshot = await database.ref(`surveys/${sessionData.surveyTemplateId}`).once('value');
+                if (!templateSnapshot.exists()) {
+                    alert('해당 세션의 설문지를 찾을 수 없습니다.');
+                    return;
+                }
+                const userSurveyTemplate = templateSnapshot.val(); // ✅ [변경] 중립적인 이름 사용
+
+                // 3. 사용자 응답 로드
                 const responsesSnapshot = await database.ref(`responses/${userId}`).once('value');
                 const userResponses = responsesSnapshot.val() || {};
-                
-                const participantSnapshot = await database.ref(`participants/${userId}`).once('value');
-                const participantData = participantSnapshot.val() || {};
-                
-                const sessionSnapshot = await database.ref(`sessions/${participantData.sessionId}`).once('value');
-                const sessionData = sessionSnapshot.val() || {};
                 
                 const container = document.getElementById('adminContent');
                 container.innerHTML = `
@@ -1170,10 +1184,7 @@
                     if (!weekData) {
                         const emptyDiv = document.createElement('div');
                         emptyDiv.className = 'result-card';
-                        emptyDiv.innerHTML = `
-                            <h3>${week}주차</h3>
-                            <div style="color: #999;">미완료</div>
-                        `;
+                        emptyDiv.innerHTML = `<h3>${week}주차</h3><div style="color: #999;">미완료</div>`;
                         container.appendChild(emptyDiv);
                         continue;
                     }
@@ -1182,11 +1193,14 @@
                     weekDiv.className = 'result-card';
                     weekDiv.innerHTML = `<h3>${week}주차 (${new Date(weekData.timestamp).toLocaleDateString('ko-KR')})</h3>`;
                     
-                    surveyData.categories.forEach(category => {
-                        const categoryData = weekData.categories[category.id];
+                    // ✅ [수정] 로드한 템플릿 데이터 사용
+                    userSurveyTemplate.categories.forEach((category, catIndex) => {
+                        const categoryKey = `cat${catIndex}`; // catIndex 키 사용
+                        const categoryData = weekData.categories[categoryKey];
                         if (!categoryData) return;
                         
-                        const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
+                        const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
+                        const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
                         
                         const catDiv = document.createElement('div');
                         catDiv.style.marginTop = '10px';
@@ -1194,7 +1208,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>${category.icon} ${category.title}</div>
                                 <div>
-                                    <strong>${categoryData.total}점</strong>
+                                    <strong>${calculatedTotal}점</strong>
                                     <span class="sensitivity ${sensitivity.level}">${sensitivity.text}</span>
                                 </div>
                             </div>
