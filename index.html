@@ -903,7 +903,7 @@
             let allAnswered = true;
             
             surveyData.categories.forEach((category, catIndex) => {
-                data.categories[category.id] = {
+                data[category.id] = {
                     questions: []
                 };
                 
@@ -917,7 +917,7 @@
                     }
                     
                     const value = selected ? parseInt(selected.value) : 0;
-                    data.categories[category.id].questions.push({
+                    data[category.id].questions.push({
                         value: value,
                         note: note
                     });
