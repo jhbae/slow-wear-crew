@@ -819,15 +819,15 @@
                         <div class="question-text">${catIndex + 1}-${qIndex + 1}. ${questionText}</div>
                         <div class="radio-group">
                             <div class="radio-option">
-                                <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
+                                <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === 1 ? 'checked' : ''} ${disabledAttribute}>
                                 <label for="${qId}_1">전혀 아니다<br>(1점)</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''} ${disabledAttribute}>
+                                <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === 2 ? 'checked' : ''} ${disabledAttribute}>
                                 <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''} ${disabledAttribute}>
+                                <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === 3 ? 'checked' : ''} ${disabledAttribute}>
                                 <label for="${qId}_3">자주 그렇다<br>(3점)</label>
                             </div>
                         </div>
