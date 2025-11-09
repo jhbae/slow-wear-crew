@@ -701,7 +701,7 @@
                         
                         let categoryScores = '';
                         surveyData.categories.forEach((category) => {
-                            const catData = weekData.categories[category.id];
+                            const catData = weekData[category.id];
                             
                             // ✅ [수정] catData가 있고, questions가 있을 때만 계산
                             if (catData && catData.questions) {
