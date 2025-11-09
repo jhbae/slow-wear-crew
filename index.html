@@ -614,7 +614,7 @@
                     sessionStorage.setItem('currentSessionId', userData.sessionId);
                     sessionStorage.setItem('accessCode', input.toUpperCase());
                     // ✅ [추가] surveyTemplateId를 세션 저장소에 저장 (새로고침 대비)
-                    sessionStorage.setItem('surveyTemplateId', sessionData.sensorySurveyTemplateId);
+                    sessionStorage.setItem('sensorySurveyTemplateId', sessionData.sensorySurveyTemplateId);
                     
                     // 마지막 접속 시간 업데이트
                     await database.ref(`participants/${userId}/lastAccess`)
