@@ -975,11 +975,11 @@
                 if (!categoryData || !categoryData.questions) return;
 
                 // 1. 민감도 및 총점 계산
-                const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
+                const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
+                const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
                 
                 // 2. [재사용] 질문 폼만 생성 (읽기 전용 모드)
                 // (카테고리 헤더는 result-header가 대신하므로 여기선 호출 X)
-                const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
                 const questionsHTML = buildQuestionsHTML(category, catIndex, categoryData, true);
                 
                 // 3. 최종 결과 카드 생성
