@@ -392,38 +392,11 @@
             align-items: center;
         }
 
-        .question-details {
-            margin-top: 15px;
-        }
-
-        .question-result-item {
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border: 1px solid #e0e0e0;
-        }
-
         .question-result-item .question-text {
             font-weight: 600;
             margin-bottom: 8px;
             color: #333;
             font-size: 15px; /* 질문 텍스트와 구분되게 */
-        }
-
-        .question-result-item .answer-value {
-            font-size: 14px;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .question-result-item .answer-note {
-            font-size: 14px;
-            color: #555;
-            background: #fdfbed; /* 특이사항 눈에 띄게 */
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #eee;
         }
 
         @media (max-width: 600px) {
@@ -812,70 +785,64 @@
             showScreen('participant-dashboard-screen');
         }
 
-        // [새로 추가] 설문 폼을 생성하는 재사용 가능한 함수
-        // containerElement: 폼을 삽입할 DOM 요소 (예: #surveyContent)
-        // responseData: 폼에 채워 넣을 기존 응답 데이터
-        // isReadOnly: true로 설정하면 '읽기 전용' (disabled) 상태가 됨
-        function buildSurveyForm(containerElement, responseData, isReadOnly) {
-            containerElement.innerHTML = ''; // 컨테이너 비우기
-            
-            const disabledAttribute = isReadOnly ? 'disabled' : '';
-            const readonlyAttribute = isReadOnly ? 'readonly' : ''; // textarea는 disabled 대신 readonly
+        // [새로 추가] 카테고리 헤더 HTML 생성 (재사용)
+        function buildCategoryHeaderHTML(category) {
+            return `
+                <div class="category-header">
+                    <span class="category-icon">${category.icon}</span>
+                    <div>
+                        <div class="category-title">${category.title}</div>
+                        <div class="category-desc">${category.description}</div>
+                    </div>
+                </div>
+            `;
+        }
 
-            surveyData.categories.forEach((category, catIndex) => {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category';
+        // [새로 추가] 카테고리 내 질문들 HTML 생성 (재사용)
+        // isReadOnly: true면 '읽기 전용' 폼 생성
+        function buildQuestionsHTML(category, catIndex, categoryResponseData, isReadOnly) {
+            let questionsHTML = '';
+            const disabledAttribute = isReadOnly ? 'disabled' : '';
+            const readonlyAttribute = isReadOnly ? 'readonly' : '';
+            
+            // placeholder 텍스트도 모드에 따라 변경
+            const notePlaceholder = isReadOnly ? '특이사항 없음' : '특이사항 (선택사항)';
+            
+            category.questions.forEach((questionText, qIndex) => {
+                // name/id가 설문 폼과 결과 폼에서 충돌하지 않게 prefix 추가
+                const qId = `${isReadOnly ? 'result_' : ''}${category.id}_${qIndex}`; 
                 
-                let categoryHTML = `
-                    <div class="category-header">
-                        <span class="category-icon">${category.icon}</span>
-                        <div>
-                            <div class="category-title">${category.title}</div>
-                            <div class="category-desc">${category.description}</div>
+                const prevValue = categoryResponseData?.questions?.[qIndex]?.value.toString() || '';
+                const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
+                
+                questionsHTML += `
+                    <div class="question">
+                        <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${questionText}</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
+                                <label for="${qId}_1">전혀 아니다<br>(1점)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''} ${disabledAttribute}>
+                                <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''} ${disabledAttribute}>
+                                <label for="${qId}_3">자주 그렇다<br>(3점)</label>
+                            </div>
                         </div>
+                        <textarea class="note-input" placeholder="${notePlaceholder}" id="${qId}_note" ${readonlyAttribute}>${prevNote}</textarea>
                     </div>
                 `;
-                
-                // 카테고리별 응답 데이터
-                const categoryResponseData = responseData?.categories?.[category.id];
-
-                category.questions.forEach((question, qIndex) => {
-                    const qId = `${category.id}_${qIndex}`;
-                    
-                    // 기존 응답 데이터 찾기 (문자열로 변환하여 비교)
-                    const prevValue = categoryResponseData?.questions?.[qIndex]?.value.toString() || '';
-                    const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
-                    
-                    categoryHTML += `
-                        <div class="question">
-                            <div class="question-text">${qIndex + 1}-${catIndex + 1}. ${question}</div>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
-                                    <label for="${qId}_1">전혀 아니다<br>(1점)</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="${qId}_2" name="${qId}" value="2" ${prevValue === '2' ? 'checked' : ''} ${disabledAttribute}>
-                                    <label for="${qId}_2">가끔 그렇다<br>(2점)</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="${qId}_3" name="${qId}" value="3" ${prevValue === '3' ? 'checked' : ''} ${disabledAttribute}>
-                                    <label for="${qId}_3">자주 그렇다<br>(3점)</label>
-                                </div>
-                            </div>
-                            <textarea class="note-input" placeholder="특이사항 없음" id="${qId}_note" ${readonlyAttribute}>${prevNote}</textarea>
-                        </div>
-                    `;
-                });
-                
-                categoryDiv.innerHTML = categoryHTML;
-                containerElement.appendChild(categoryDiv);
             });
+            return questionsHTML;
         }
 
         // 설문 로드
         async function loadSurvey() {
             const content = document.getElementById('surveyContent');
+            content.innerHTML = ''; // 비우기
 
             if (!database || !currentUser) {
                 content.innerHTML = '로그인이 필요합니다.';
@@ -885,10 +852,21 @@
             try {
                 // 기존 응답 데이터 가져오기
                 const snapshot = await database.ref(`responses/${currentUser}/week${currentWeek}`).once('value');
-                const previousResponses = snapshot.val(); // (예: {categories: {...}, timestamp: ...})
+                const previousResponses = snapshot.val();
                 
-                // [수정] 재사용 함수 호출 (수정 가능 모드: isReadOnly = false)
-                buildSurveyForm(content, previousResponses, false);
+                surveyData.categories.forEach((category, catIndex) => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
+                    
+                    const categoryResponseData = previousResponses?.categories?.[category.id];
+                    
+                    // [재사용] 헤더 + 질문 폼 (수정 가능 모드)
+                    categoryDiv.innerHTML = 
+                        buildCategoryHeaderHTML(category) + 
+                        buildQuestionsHTML(category, catIndex, categoryResponseData, false);
+                    
+                    content.appendChild(categoryDiv);
+                });
                 
                 updateProgress(); // 진행률 업데이트
             } catch (error) {
@@ -988,14 +966,37 @@
 
         // 결과 표시
         function showResults(data) {
-            const content = document.getElementById('resultContent');
-            
-            // [수정] 총점/민감도 제거, 제목만 표시
-            content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과 (확인)</h3>`;
-            
-            // [수정] 재사용 함수 호출 (읽기 전용 모드: isReadOnly = true)
-            // 'data' 객체를 그대로 넘겨주어 폼을 채웁니다.
-            buildSurveyForm(content, data, true);
+            ategoryData = data.categories[category.id];
+                if (!categoryData) return;
+
+                // 1. 민감도 및 총점 계산
+                const sensitivity = calculateSensitivity(categoryData.total, category.scoreRange);
+                
+                // 2. [재사용] 질문 폼만 생성 (읽기 전용 모드)
+                // (카테고리 헤더는 result-header가 대신하므로 여기선 호출 X)
+                const questionsHTML = buildQuestionsHTML(category, catIndex, categoryData, true);
+                
+                // 3. 최종 결과 카드 생성
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                resultCard.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-title">
+                            <span>${category.icon}</span>
+                            <span>${category.title}</span>
+                        </div>
+                        <div class="result-score">${categoryData.total}점</div>
+                    </div>
+                    <div>
+                        <span class="sensitivity ${sensitivity.level}">민감도: ${sensitivity.text}</span>
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+                    
+                    ${questionsHTML}
+                `;
+                content.appendChild(resultCard);
+            });
             
             showScreen('result-screen');
         }
