@@ -811,12 +811,12 @@
             category.questions.forEach((questionText, qIndex) => {
                 // name/id가 설문 폼과 결과 폼에서 충돌하지 않게 prefix 추가
                 const qId = `${isReadOnly ? 'result_' : ''}${category.id}_${qIndex}`;
-                const prevValue = categoryResponseData?.questions?.[qIndex]?.value.toString() || '';
+                const prevValue = categoryResponseData?.questions?.[qIndex]?.value || 0;
                 const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
                 
                 questionsHTML += `
                     <div class="question">
-                        <div class="question-text">${qIndex + 1}-${qIndex + 1}. ${questionText}</div>
+                        <div class="question-text">${catIndex + 1}-${qIndex + 1}. ${questionText}</div>
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" id="${qId}_1" name="${qId}" value="1" ${prevValue === '1' ? 'checked' : ''} ${disabledAttribute}>
