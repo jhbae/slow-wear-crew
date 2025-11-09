@@ -854,7 +854,7 @@
             try {
                 // 기존 응답 데이터 가져오기
                 const snapshot = await database.ref(`responses/${currentUser}/week${currentWeek}`).once('value');
-                const previousResponses = snapshot.val();
+                let previousResponses = snapshot.val();
 
                 // ✅ [추가] 임시 저장 데이터 로드 및 병합 (Firebase 데이터보다 우선)
                 const storageKey = `draft_week${currentWeek}_${currentUser}`;
