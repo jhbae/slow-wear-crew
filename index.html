@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>감각 반응 설문조사 V3</title>
+    <title>감각 반응 설문조사 V4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -123,6 +123,14 @@
         .progress-card h3 {
             margin-bottom: 15px;
             font-size: 18px;
+        }
+
+        .session-info {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
 
         .week-grid {
@@ -290,29 +298,6 @@
             min-height: 60px;
         }
 
-        .week-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .week-btn {
-            flex: 1;
-            padding: 10px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .week-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
         .progress-bar {
             height: 6px;
             background: #e0e0e0;
@@ -455,6 +440,7 @@
                 
                 <!-- 진행 현황 -->
                 <div class="progress-card">
+                    <div class="session-info" id="sessionInfo"></div>
                     <h3>진행 현황</h3>
                     <div id="participantProgress"></div>
                 </div>
@@ -497,16 +483,15 @@
 
     <script>
         // Firebase 설정 (사용자가 직접 설정해야 함)
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-          apiKey: "AIzaSyCIjXYco5ydEsXcap0kq2hvRstNT4vjorY",
-          authDomain: "slow-wear-crew.firebaseapp.com",
-          projectId: "slow-wear-crew",
-          storageBucket: "slow-wear-crew.firebasestorage.app",
-          messagingSenderId: "281669334869",
-          databaseURL: "https://slow-wear-crew-default-rtdb.asia-southeast1.firebasedatabase.app",
-          appId: "1:281669334869:web:e8ebacf777c25127a5e1dc",
-          measurementId: "G-ZSQMNN9WSH"
+            apiKey: "AIzaSyCIjXYco5ydEsXcap0kq2hvRstNT4vjorY",
+            authDomain: "slow-wear-crew.firebaseapp.com",
+            projectId: "slow-wear-crew",
+            storageBucket: "slow-wear-crew.firebasestorage.app",
+            messagingSenderId: "281669334869",
+            databaseURL: "https://slow-wear-crew-default-rtdb.asia-southeast1.firebasedatabase.app",
+            appId: "1:281669334869:web:e8ebacf777c25127a5e1dc",
+            measurementId: "G-ZSQMNN9WSH"
         };
 
         // Firebase 초기화
@@ -585,8 +570,8 @@
             ]
         };
 
-        let currentSession = null;
         let currentUser = null;
+        let currentSessionId = null;
         let currentWeek = 1;
         let isAdmin = false;
         let responses = {};
@@ -627,38 +612,32 @@
                     return;
                 }
                 
-                // 2. 참가자 코드 확인 (모든 회차 검색)
-                const sessionsSnapshot = await database.ref('sessions').once('value');
-                const sessions = sessionsSnapshot.val() || {};
+                // 2. 참가자 코드 확인 (평평한 구조에서 검색)
+                const participantsSnapshot = await database.ref('participants').once('value');
+                const participants = participantsSnapshot.val() || {};
                 
                 let found = false;
                 
-                for (const [sessionId, sessionData] of Object.entries(sessions)) {
-                    const participants = sessionData.participants || {};
-                    
-                    for (const [userId, userData] of Object.entries(participants)) {
-                        if (userData.accessCode === input.toUpperCase()) {
-                            // 참가자 발견!
-                            currentSession = sessionId;
-                            currentUser = userId;
-                            found = true;
-                            
-                            sessionStorage.setItem('currentSession', sessionId);
-                            sessionStorage.setItem('currentUser', userId);
-                            sessionStorage.setItem('accessCode', input.toUpperCase());
-                            
-                            // 마지막 접속 시간 업데이트
-                            await database.ref(`sessions/${sessionId}/participants/${userId}/lastAccess`)
-                                .set(new Date().toISOString());
-                            
-                            // 참가자 대시보드로!
-                            await loadParticipantDashboard();
-                            showScreen('participant-dashboard-screen');
-                            break;
-                        }
+                for (const [userId, userData] of Object.entries(participants)) {
+                    if (userData.accessCode === input.toUpperCase()) {
+                        // 참가자 발견!
+                        currentUser = userId;
+                        currentSessionId = userData.sessionId;
+                        found = true;
+                        
+                        sessionStorage.setItem('currentUser', userId);
+                        sessionStorage.setItem('currentSessionId', userData.sessionId);
+                        sessionStorage.setItem('accessCode', input.toUpperCase());
+                        
+                        // 마지막 접속 시간 업데이트
+                        await database.ref(`participants/${userId}/lastAccess`)
+                            .set(new Date().toISOString());
+                        
+                        // 참가자 대시보드로!
+                        await loadParticipantDashboard();
+                        showScreen('participant-dashboard-screen');
+                        break;
                     }
-                    
-                    if (found) break;
                 }
                 
                 if (!found) {
@@ -673,8 +652,8 @@
 
         // 로그아웃
         function logout() {
-            currentSession = null;
             currentUser = null;
+            currentSessionId = null;
             isAdmin = false;
             sessionStorage.clear();
             document.getElementById('loginInput').value = '';
@@ -683,15 +662,23 @@
 
         // 참가자 대시보드 로드
         async function loadParticipantDashboard() {
-            if (!currentSession || !currentUser) return;
+            if (!currentUser || !currentSessionId) return;
             
             try {
-                // 내 응답 데이터 가져오기
-                const snapshot = await database.ref(
-                    `sessions/${currentSession}/responses/${currentUser}`
-                ).once('value');
+                // 회차 정보 가져오기
+                const sessionSnapshot = await database.ref(`sessions/${currentSessionId}`).once('value');
+                const sessionData = sessionSnapshot.val() || {};
                 
-                const myResponses = snapshot.val() || {};
+                // 회차 정보 표시
+                const sessionInfo = document.getElementById('sessionInfo');
+                sessionInfo.innerHTML = `
+                    <strong>${sessionData.name || currentSessionId}</strong><br>
+                    ${sessionData.startDate || ''} ${sessionData.endDate ? `~ ${sessionData.endDate}` : ''}
+                `;
+                
+                // 내 응답 데이터 가져오기
+                const responsesSnapshot = await database.ref(`responses/${currentUser}`).once('value');
+                const myResponses = responsesSnapshot.val() || {};
                 
                 // 진행 현황 표시
                 const completedWeeks = Object.keys(myResponses).length;
@@ -777,10 +764,7 @@
         async function viewWeekDetail(week) {
             currentWeek = week;
             
-            const snapshot = await database.ref(
-                `sessions/${currentSession}/responses/${currentUser}/week${week}`
-            ).once('value');
-            
+            const snapshot = await database.ref(`responses/${currentUser}/week${week}`).once('value');
             const weekData = snapshot.val();
             
             if (!weekData) return;
@@ -808,13 +792,10 @@
             content.innerHTML = '';
             responses = {};
 
-            if (!database || !currentSession || !currentUser) return;
+            if (!database || !currentUser) return;
 
             try {
-                const snapshot = await database.ref(
-                    `sessions/${currentSession}/responses/${currentUser}/week${currentWeek}`
-                ).once('value');
-                
+                const snapshot = await database.ref(`responses/${currentUser}/week${currentWeek}`).once('value');
                 const previousResponses = snapshot.val();
                 
                 surveyData.categories.forEach((category, catIndex) => {
@@ -938,15 +919,13 @@
                 return;
             }
             
-            if (!database || !currentSession || !currentUser) {
+            if (!database || !currentUser) {
                 alert('로그인이 필요합니다.');
                 return;
             }
             
             try {
-                await database.ref(
-                    `sessions/${currentSession}/responses/${currentUser}/week${currentWeek}`
-                ).set(data);
+                await database.ref(`responses/${currentUser}/week${currentWeek}`).set(data);
                 
                 alert('제출이 완료되었습니다!');
                 
@@ -1008,26 +987,39 @@
                     return;
                 }
                 
+                // 모든 참가자 데이터 가져오기
+                const participantsSnapshot = await database.ref('participants').once('value');
+                const allParticipants = participantsSnapshot.val() || {};
+                
+                const responsesSnapshot = await database.ref('responses').once('value');
+                const allResponses = responsesSnapshot.val() || {};
+                
                 for (const [sessionId, sessionData] of Object.entries(sessions)) {
                     const sessionDiv = document.createElement('div');
                     sessionDiv.className = 'session-card';
                     
-                    const participants = sessionData.participants || {};
-                    const responses = sessionData.responses || {};
-                    const participantCount = Object.keys(participants).length;
+                    // 해당 회차의 참가자 필터링
+                    const sessionParticipants = Object.entries(allParticipants)
+                        .filter(([_, data]) => data.sessionId === sessionId);
+                    
+                    const participantCount = sessionParticipants.length;
                     
                     // 완료율 계산
                     let totalWeeks = participantCount * 4;
                     let completedWeeks = 0;
                     
-                    Object.values(responses).forEach(userResponses => {
+                    sessionParticipants.forEach(([userId, _]) => {
+                        const userResponses = allResponses[userId] || {};
                         completedWeeks += Object.keys(userResponses).length;
                     });
                     
                     const completionRate = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
                     
                     sessionDiv.innerHTML = `
-                        <h3>📅 ${sessionId} ${sessionData.startDate ? `(${sessionData.startDate})` : ''}</h3>
+                        <h3>📅 ${sessionData.name || sessionId}</h3>
+                        <div style="font-size: 14px; color: #666; margin: 5px 0;">
+                            ${sessionData.startDate || ''} ${sessionData.endDate ? `~ ${sessionData.endDate}` : ''}
+                        </div>
                         <div class="session-stats">
                             <div>참가자: ${participantCount}명</div>
                             <div>완료율: ${completionRate}% (${completedWeeks}/${totalWeeks})</div>
@@ -1049,20 +1041,32 @@
                 const sessionSnapshot = await database.ref(`sessions/${sessionId}`).once('value');
                 const sessionData = sessionSnapshot.val();
                 
-                const participants = sessionData.participants || {};
-                const responses = sessionData.responses || {};
+                const participantsSnapshot = await database.ref('participants').once('value');
+                const allParticipants = participantsSnapshot.val() || {};
+                
+                const responsesSnapshot = await database.ref('responses').once('value');
+                const allResponses = responsesSnapshot.val() || {};
+                
+                // 해당 회차의 참가자만 필터링
+                const sessionParticipants = Object.entries(allParticipants)
+                    .filter(([_, data]) => data.sessionId === sessionId);
                 
                 const container = document.getElementById('adminContent');
                 container.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>📅 ${sessionId} 상세</h2>
+                        <div>
+                            <h2>📅 ${sessionData.name || sessionId}</h2>
+                            <div style="font-size: 14px; color: #666;">
+                                ${sessionData.startDate || ''} ${sessionData.endDate ? `~ ${sessionData.endDate}` : ''}
+                            </div>
+                        </div>
                         <button class="btn btn-secondary" onclick="loadAdminPage()" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
                     </div>
                 `;
                 
                 // 참가자별 진행 상황
-                for (const [userId, userData] of Object.entries(participants)) {
-                    const userResponses = responses[userId] || {};
+                for (const [userId, userData] of sessionParticipants) {
+                    const userResponses = allResponses[userId] || {};
                     const completedWeeks = Object.keys(userResponses).length;
                     
                     const userDiv = document.createElement('div');
@@ -1075,7 +1079,7 @@
                                 ${userData.lastAccess ? `| 마지막 접속: ${new Date(userData.lastAccess).toLocaleString('ko-KR')}` : ''}
                             </div>
                         </div>
-                        <button class="btn" onclick="viewUserResponses('${sessionId}', '${userId}')" style="width: auto; padding: 10px 20px;">응답 보기</button>
+                        <button class="btn" onclick="viewUserResponses('${userId}')" style="width: auto; padding: 10px 20px;">응답 보기</button>
                     `;
                     
                     container.appendChild(userDiv);
@@ -1087,16 +1091,27 @@
         }
 
         // 사용자 응답 보기
-        async function viewUserResponses(sessionId, userId) {
+        async function viewUserResponses(userId) {
             try {
-                const responsesSnapshot = await database.ref(`sessions/${sessionId}/responses/${userId}`).once('value');
+                const responsesSnapshot = await database.ref(`responses/${userId}`).once('value');
                 const userResponses = responsesSnapshot.val() || {};
+                
+                const participantSnapshot = await database.ref(`participants/${userId}`).once('value');
+                const participantData = participantSnapshot.val() || {};
+                
+                const sessionSnapshot = await database.ref(`sessions/${participantData.sessionId}`).once('value');
+                const sessionData = sessionSnapshot.val() || {};
                 
                 const container = document.getElementById('adminContent');
                 container.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>📊 ${userId} 응답 결과</h2>
-                        <button class="btn btn-secondary" onclick="viewSessionDetail('${sessionId}')" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
+                        <div>
+                            <h2>📊 ${userId} 응답 결과</h2>
+                            <div style="font-size: 14px; color: #666;">
+                                ${sessionData.name || participantData.sessionId} | 코드: ${participantData.accessCode}
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="viewSessionDetail('${participantData.sessionId}')" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
                     </div>
                 `;
                 
@@ -1149,17 +1164,17 @@
 
         // 페이지 로드 시 자동 로그인 시도
         window.onload = function() {
-            const savedSession = sessionStorage.getItem('currentSession');
             const savedUser = sessionStorage.getItem('currentUser');
+            const savedSessionId = sessionStorage.getItem('currentSessionId');
             const savedIsAdmin = sessionStorage.getItem('isAdmin');
             
             if (savedIsAdmin === 'true' && database) {
                 isAdmin = true;
                 loadAdminPage();
                 showScreen('admin-screen');
-            } else if (savedSession && savedUser && database) {
-                currentSession = savedSession;
+            } else if (savedUser && savedSessionId && database) {
                 currentUser = savedUser;
+                currentSessionId = savedSessionId;
                 loadParticipantDashboard();
                 showScreen('participant-dashboard-screen');
             }
