@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>감각 반응 설문조사 V4</title>
+    <title>감각 반응 설문조사 V5</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -110,7 +110,6 @@
             margin-top: 10px;
         }
 
-        /* 참가자 대시보드 */
         .progress-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -209,7 +208,6 @@
             border-bottom: none;
         }
 
-        /* 설문 */
         .category {
             margin-bottom: 40px;
             padding: 20px;
@@ -312,7 +310,6 @@
             transition: width 0.3s;
         }
 
-        /* 결과 */
         .result-card {
             background: #f8f9fa;
             padding: 20px;
@@ -365,7 +362,6 @@
             color: #721c24;
         }
 
-        /* 관리자 */
         .session-card {
             background: #f8f9fa;
             padding: 20px;
@@ -415,7 +411,7 @@
     <div class="container">
         <div class="header">
             <h1>🌈 감각 반응 설문조사</h1>
-            <p>회차별 감각 반응 평가 프로그램</p>
+            <p>회차별 감각 반응 평가 프로그램 V5 (보안 강화)</p>
         </div>
 
         <div class="content">
@@ -438,14 +434,12 @@
                     <button class="btn btn-secondary" onclick="logout()" style="width: auto; padding: 10px 20px;">로그아웃</button>
                 </div>
                 
-                <!-- 진행 현황 -->
                 <div class="progress-card">
                     <div class="session-info" id="sessionInfo"></div>
                     <h3>진행 현황</h3>
                     <div id="participantProgress"></div>
                 </div>
                 
-                <!-- 주차별 카드 -->
                 <div class="week-grid" id="weekGrid"></div>
             </div>
 
@@ -482,7 +476,7 @@
     </div>
 
     <script>
-        // Firebase 설정 (사용자가 직접 설정해야 함)
+        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyCIjXYco5ydEsXcap0kq2hvRstNT4vjorY",
             authDomain: "slow-wear-crew.firebaseapp.com",
@@ -574,7 +568,7 @@
         let currentSessionId = null;
         let currentWeek = 1;
         let isAdmin = false;
-        let responses = {};
+        let adminSessionList = [];
 
         // 화면 전환
         function showScreen(screenName) {
@@ -584,7 +578,7 @@
             document.querySelector(`.${screenName}`).classList.add('active');
         }
 
-        // 통합 로그인
+        // 통합 로그인 (쿼리 기반)
         async function login() {
             const input = document.getElementById('loginInput').value.trim();
             
@@ -612,35 +606,34 @@
                     return;
                 }
                 
-                // 2. 참가자 코드 확인 (평평한 구조에서 검색)
-                const participantsSnapshot = await database.ref('participants').once('value');
-                const participants = participantsSnapshot.val() || {};
+                // 2. 참가자 코드 확인 (쿼리 사용)
+                const participantsSnapshot = await database.ref('participants')
+                    .orderByChild('accessCode')
+                    .equalTo(input.toUpperCase())
+                    .once('value');
                 
-                let found = false;
+                const participants = participantsSnapshot.val();
                 
-                for (const [userId, userData] of Object.entries(participants)) {
-                    if (userData.accessCode === input.toUpperCase()) {
-                        // 참가자 발견!
-                        currentUser = userId;
-                        currentSessionId = userData.sessionId;
-                        found = true;
-                        
-                        sessionStorage.setItem('currentUser', userId);
-                        sessionStorage.setItem('currentSessionId', userData.sessionId);
-                        sessionStorage.setItem('accessCode', input.toUpperCase());
-                        
-                        // 마지막 접속 시간 업데이트
-                        await database.ref(`participants/${userId}/lastAccess`)
-                            .set(new Date().toISOString());
-                        
-                        // 참가자 대시보드로!
-                        await loadParticipantDashboard();
-                        showScreen('participant-dashboard-screen');
-                        break;
-                    }
-                }
-                
-                if (!found) {
+                if (participants && Object.keys(participants).length > 0) {
+                    // 참가자 발견!
+                    const userId = Object.keys(participants)[0];
+                    const userData = participants[userId];
+                    
+                    currentUser = userId;
+                    currentSessionId = userData.sessionId;
+                    
+                    sessionStorage.setItem('currentUser', userId);
+                    sessionStorage.setItem('currentSessionId', userData.sessionId);
+                    sessionStorage.setItem('accessCode', input.toUpperCase());
+                    
+                    // 마지막 접속 시간 업데이트
+                    await database.ref(`participants/${userId}/lastAccess`)
+                        .set(new Date().toISOString());
+                    
+                    // 참가자 대시보드로!
+                    await loadParticipantDashboard();
+                    showScreen('participant-dashboard-screen');
+                } else {
                     alert('유효하지 않은 코드 또는 비밀번호입니다.');
                 }
                 
@@ -655,6 +648,7 @@
             currentUser = null;
             currentSessionId = null;
             isAdmin = false;
+            adminSessionList = [];
             sessionStorage.clear();
             document.getElementById('loginInput').value = '';
             showScreen('login-screen');
@@ -705,7 +699,6 @@
                     weekCard.className = 'week-card-large';
                     
                     if (weekData) {
-                        // 완료된 주차
                         weekCard.classList.add('completed');
                         
                         let categoryScores = '';
@@ -736,7 +729,6 @@
                             <button class="btn" onclick="viewWeekDetail(${week})">상세 보기</button>
                         `;
                     } else {
-                        // 미완료 주차
                         weekCard.innerHTML = `
                             <div class="week-header">
                                 <h3>${week}주차</h3>
@@ -790,7 +782,6 @@
         async function loadSurvey() {
             const content = document.getElementById('surveyContent');
             content.innerHTML = '';
-            responses = {};
 
             if (!database || !currentUser) return;
 
@@ -929,7 +920,6 @@
                 
                 alert('제출이 완료되었습니다!');
                 
-                // 대시보드로 돌아가기
                 await loadParticipantDashboard();
                 showScreen('participant-dashboard-screen');
                 
@@ -987,34 +977,43 @@
                     return;
                 }
                 
-                // 모든 참가자 데이터 가져오기
-                const participantsSnapshot = await database.ref('participants').once('value');
-                const allParticipants = participantsSnapshot.val() || {};
-                
+                // 모든 참가자와 응답 데이터를 각 회차별로 조회
                 const responsesSnapshot = await database.ref('responses').once('value');
                 const allResponses = responsesSnapshot.val() || {};
                 
+                // 회차별 참가자 ID 저장
+                adminSessionList = [];
+                
                 for (const [sessionId, sessionData] of Object.entries(sessions)) {
-                    const sessionDiv = document.createElement('div');
-                    sessionDiv.className = 'session-card';
+                    // 해당 회차의 참가자 ID 수집 (쿼리 사용)
+                    const participantsSnapshot = await database.ref('participants')
+                        .orderByChild('sessionId')
+                        .equalTo(sessionId)
+                        .once('value');
                     
-                    // 해당 회차의 참가자 필터링
-                    const sessionParticipants = Object.entries(allParticipants)
-                        .filter(([_, data]) => data.sessionId === sessionId);
+                    const sessionParticipants = participantsSnapshot.val() || {};
+                    const participantIds = Object.keys(sessionParticipants);
                     
-                    const participantCount = sessionParticipants.length;
+                    adminSessionList.push({
+                        sessionId: sessionId,
+                        participantIds: participantIds
+                    });
+                    
+                    const participantCount = participantIds.length;
                     
                     // 완료율 계산
                     let totalWeeks = participantCount * 4;
                     let completedWeeks = 0;
                     
-                    sessionParticipants.forEach(([userId, _]) => {
+                    participantIds.forEach(userId => {
                         const userResponses = allResponses[userId] || {};
                         completedWeeks += Object.keys(userResponses).length;
                     });
                     
                     const completionRate = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
                     
+                    const sessionDiv = document.createElement('div');
+                    sessionDiv.className = 'session-card';
                     sessionDiv.innerHTML = `
                         <h3>📅 ${sessionData.name || sessionId}</h3>
                         <div style="font-size: 14px; color: #666; margin: 5px 0;">
@@ -1041,15 +1040,16 @@
                 const sessionSnapshot = await database.ref(`sessions/${sessionId}`).once('value');
                 const sessionData = sessionSnapshot.val();
                 
-                const participantsSnapshot = await database.ref('participants').once('value');
-                const allParticipants = participantsSnapshot.val() || {};
+                // 해당 회차의 참가자만 쿼리
+                const participantsSnapshot = await database.ref('participants')
+                    .orderByChild('sessionId')
+                    .equalTo(sessionId)
+                    .once('value');
+                
+                const sessionParticipants = participantsSnapshot.val() || {};
                 
                 const responsesSnapshot = await database.ref('responses').once('value');
                 const allResponses = responsesSnapshot.val() || {};
-                
-                // 해당 회차의 참가자만 필터링
-                const sessionParticipants = Object.entries(allParticipants)
-                    .filter(([_, data]) => data.sessionId === sessionId);
                 
                 const container = document.getElementById('adminContent');
                 container.innerHTML = `
@@ -1065,7 +1065,7 @@
                 `;
                 
                 // 참가자별 진행 상황
-                for (const [userId, userData] of sessionParticipants) {
+                for (const [userId, userData] of Object.entries(sessionParticipants)) {
                     const userResponses = allResponses[userId] || {};
                     const completedWeeks = Object.keys(userResponses).length;
                     
@@ -1179,14 +1179,12 @@
                 showScreen('participant-dashboard-screen');
             }
             
-            // 진행률 업데이트 이벤트 리스너
             document.addEventListener('change', function(e) {
                 if (e.target.type === 'radio') {
                     updateProgress();
                 }
             });
 
-            // Enter 키로 로그인
             const loginInput = document.getElementById('loginInput');
             if (loginInput) {
                 loginInput.addEventListener('keypress', function(e) {
