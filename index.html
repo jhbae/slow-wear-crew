@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>슬로우 웨어 크루 - 설문 선택</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="index.css">
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <a href="admin.html" class="admin-link">🔐 Admin</a>  <!-- ← 이 줄 추가 -->
+            <a href="admin.html" class="admin-link">🔐 Admin</a>
             <h1>슬로우 웨어 크루</h1>
             <p>설문 선택 및 접속</p>
         </div>
@@ -41,6 +45,9 @@
             </div>
         </div>
     </div>
-    <script type"module" src="js/index.js"></script>
+
+    <!-- JavaScript -->
+    <script src="firebase-config.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>
