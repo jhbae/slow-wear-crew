@@ -1,7 +1,4 @@
-// [수정] 공통 모듈에서 db 임포트
-import { db } from './firebase-init.js';
-// [수정] v10(v9 모듈식) SDK 함수 임포트
-import { ref, get, query, orderByChild, equalTo, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+// index.html 전용 JavaScript
 
 let currentUser = null;
 let currentSessionId = null;
@@ -18,11 +15,11 @@ function showScreen(screenName) {
 // 로그인
 async function login() {
     const input = document.getElementById('loginInput').value.trim();
-    if (!input) return;
+    if (!input || !database) return;
 
     try {
-        // [수정] v10 구문으로 변경 (get, ref)
-        const adminSnapshot = await get(ref(db, `admin/${input}`));
+        // 1. 관리자 확인
+        const adminSnapshot = await database.ref(`admin/${input}`).once('value');
         if (adminSnapshot.exists()) {
             isAdmin = true;
             sessionStorage.setItem('isAdmin', 'true');
@@ -30,13 +27,11 @@ async function login() {
             return;
         }
         
-        // [수정] v10 쿼리 구문으로 변경 (query, orderByChild, equalTo)
-        const participantsQuery = query(
-            ref(db, 'participants'),
-            orderByChild('accessCode'),
-            equalTo(input.toUpperCase())
-        );
-        const participantsSnapshot = await get(participantsQuery);
+        // 2. 참가자 확인 및 세션 정보 로드
+        const participantsSnapshot = await database.ref('participants')
+            .orderByChild('accessCode')
+            .equalTo(input.toUpperCase())
+            .once('value');
         
         const participants = participantsSnapshot.val();
         
@@ -44,8 +39,7 @@ async function login() {
             const userId = Object.keys(participants)[0];
             const userData = participants[userId];
 
-            // [수정] v10 구문으로 변경
-            const sessionSnapshot = await get(ref(db, `sessions/${userData.sessionId}`));
+            const sessionSnapshot = await database.ref(`sessions/${userData.sessionId}`).once('value');
             const sessionData = sessionSnapshot.val();
             
             if (!sessionData || !sessionData.sensorySurveyTemplateId || !sessionData.wearingProgressSurveyTemplateId) {
@@ -53,14 +47,15 @@ async function login() {
                  return;
             }
 
+            // ✅ [핵심] 두 템플릿 ID를 모두 저장
             sessionStorage.setItem('currentUser', userId);
             sessionStorage.setItem('currentSessionId', userData.sessionId);
             sessionStorage.setItem('accessCode', input.toUpperCase());
             sessionStorage.setItem('sensorySurveyTemplateId', sessionData.sensorySurveyTemplateId);
             sessionStorage.setItem('wearingProgressSurveyTemplateId', sessionData.wearingProgressSurveyTemplateId);
             
-            // [수정] v10 구문으로 변경 (set)
-            await set(ref(db, `participants/${userId}/lastAccess`), new Date().toISOString());
+            // 마지막 접속 시간 업데이트
+            await database.ref(`participants/${userId}/lastAccess`).set(new Date().toISOString());
             
             location.hash = '#select'; 
         } else {
@@ -88,6 +83,7 @@ async function handleRouteChange() {
 
     if (hash === '#select') {
         if (!savedUser && !savedIsAdmin) return location.hash = '#login';
+        // 관리자는 이 페이지에서 로그아웃만 가능
         showScreen('survey-select-screen'); 
         
     } else { // '#login'
@@ -99,15 +95,9 @@ async function handleRouteChange() {
     }
 }
 
-// [수정] 모듈 스크립트에서 전역 함수로 노출
-window.login = login;
-window.logout = logout;
-
 // 이벤트 리스너
 window.addEventListener('load', handleRouteChange);
 window.addEventListener('hashchange', handleRouteChange);
 document.getElementById('loginInput').addEventListener('keypress', (e) => { 
-    if (e.key === 'Enter') {
-        login(); // 이 파일 내부에서는 window.login()이 필요 없음
-    } 
+    if (e.key === 'Enter') login(); 
 });
