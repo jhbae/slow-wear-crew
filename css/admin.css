@@ -1,0 +1,274 @@
+/* =================================
+   Admin Page Styles (admin.html)
+   ================================= */
+
+.container {
+    max-width: 1400px;
+}
+
+.login-box, .admin-panel {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.login-box {
+    max-width: 400px;
+    margin: 100px auto;
+}
+
+h1 {
+    color: #667eea;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+h2 {
+    color: #667eea;
+    margin: 30px 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+/* 탭 */
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: #f0f0f0;
+    color: #666;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 필터 */
+.filter-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: end;
+}
+
+.filter-row > div {
+    flex: 1;
+}
+
+.filter-row button {
+    flex: 0 0 150px;
+}
+
+/* 통계 */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 14px;
+}
+
+/* 응답 리스트 */
+.response-list {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.response-item {
+    background: white;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.participant-id {
+    font-size: 18px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.response-week {
+    background: #667eea;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.category-section {
+    margin-bottom: 20px;
+}
+
+.category-title {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.question-item {
+    background: #f8f9fa;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
+
+.question-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.question-answer {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
+.answer-value {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.answer-note {
+    flex: 1;
+    margin-left: 15px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+}
+
+/* 기타 */
+.export-section {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.export-section button {
+    flex: 1;
+}
+
+.timestamp {
+    font-size: 12px;
+    color: #999;
+}
+
+.logout-btn {
+    background: #dc3545;
+    margin-top: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.user-info {
+    background: #f0f0f0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-email {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #667eea;
+}
+
+.loading::after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* 민감도 배지 스타일 */
+.admin-sensitivity {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+.admin-sensitivity.low { background: #d4edda; color: #155724; }
+.admin-sensitivity.medium { background: #fff3cd; color: #856404; }
+.admin-sensitivity.high { background: #f8d7da; color: #721c24; }
+.admin-sensitivity.na { background: #e9ecef; color: #495057; }
