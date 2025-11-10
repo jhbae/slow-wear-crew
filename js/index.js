@@ -106,4 +106,8 @@ window.logout = logout;
 // 이벤트 리스너
 window.addEventListener('load', handleRouteChange);
 window.addEventListener('hashchange', handleRouteChange);
-document.getElementById('loginInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+document.getElementById('loginInput').addEventListener('keypress', (e) => { 
+    if (e.key === 'Enter') {
+        login(); // 이 파일 내부에서는 window.login()이 필요 없음
+    } 
+});
