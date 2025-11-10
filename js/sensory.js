@@ -863,5 +863,3 @@ window.addEventListener('load', () => {
 });
 
 window.addEventListener('hashchange', handleRouteChange);
-   
-    </script>
