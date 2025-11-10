@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>슬로우 웨어 크루 일지</title>
-
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/sensory.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="container">
@@ -68,9 +73,16 @@
                 </div>
                 <div id="resultContent"></div>
             </div>
+
+            <!-- 관리자 화면 -->
+            <div class="admin-screen">
+                <div id="adminContent"></div>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="js/sensory.js"></script>
+    <!-- JavaScript -->
+    <script src="js/firebase-init.js"></script>
+    <script src="js/sensory.js"></script>
 </body>
 </html>
