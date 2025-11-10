@@ -1,4 +1,7 @@
 /* index.html 전용 CSS */
+.container {
+    max-width: 800px;  /* 또는 원하는 너비 */
+}
 
 /* 화면 전환 */
 .login-screen, 
