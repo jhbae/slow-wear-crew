@@ -1,9 +1,6 @@
 // Admin 페이지 JavaScript
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js';
-import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js';
-import { calculateSensitivity } from './utils.js';
 
+// Firebase 설정 (compat 방식)
 const firebaseConfig = {
     apiKey: "AIzaSyCIjXYco5ydEsXcap0kq2hvRstNT4vjorY",
     authDomain: "slow-wear-crew.firebaseapp.com",
@@ -14,9 +11,13 @@ const firebaseConfig = {
     appId: "1:281669334869:web:e8ebacf777c25127a5e1dc"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+// Firebase 초기화
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.database();
+const auth = firebase.auth();
 
 let allData = {
     participants: {},
@@ -26,7 +27,7 @@ let allData = {
 };
 
 // 인증 상태 체크
-onAuthStateChanged(auth, async (user) => {
+auth.onAuthStateChanged(async (user) => {
     if (user) {
         // 로그인 성공
         document.getElementById('loginBox').classList.add('hidden');
@@ -61,7 +62,7 @@ window.adminLogin = async function() {
         loginBtn.disabled = true;
         loginBtn.textContent = 'Logging in...';
 
-        await signInWithEmailAndPassword(auth, email, password);
+        await auth.signInWithEmailAndPassword(email, password);
 
         // onAuthStateChanged에서 자동으로 처리됨
     } catch (error) {
@@ -95,7 +96,7 @@ window.adminLogin = async function() {
 
 window.adminLogout = async function() {
     try {
-        await signOut(auth);
+        await auth.signOut();
         document.getElementById('adminEmail').value = '';
         document.getElementById('adminPassword').value = '';
     } catch (error) {
@@ -107,19 +108,19 @@ window.adminLogout = async function() {
 async function loadAllData() {
     try {
         // Sessions
-        const sessionsSnapshot = await get(ref(db, 'sessions'));
+        const sessionsSnapshot = await db.ref('sessions').once('value');
         allData.sessions = sessionsSnapshot.val() || {};
 
         // Surveys
-        const surveysSnapshot = await get(ref(db, 'surveys'));
+        const surveysSnapshot = await db.ref('surveys').once('value');
         allData.surveys = surveysSnapshot.val() || {};
 
         // Participants
-        const participantsSnapshot = await get(ref(db, 'participants'));
+        const participantsSnapshot = await db.ref('participants').once('value');
         allData.participants = participantsSnapshot.val() || {};
 
         // Responses (전체 조회 가능 - auth != null)
-        const responsesSnapshot = await get(ref(db, 'responses'));
+        const responsesSnapshot = await db.ref('responses').once('value');
         allData.responses = responsesSnapshot.val() || {};
 
         // UI 업데이트
