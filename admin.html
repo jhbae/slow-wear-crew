@@ -6,12 +6,15 @@
     <title>Slow Wear Crew - Admin</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin_org.css">
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-auth-compat.js"></script>
+
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -41,13 +44,13 @@
 
             <!-- 탭 버튼 -->
             <div class="tab-buttons">
-                <button class="tab-btn active" onclick="switchTab('sensory')">Sensory Survey</button>
+                <button class="tab-btn active" onclick="switchTab('participants')">Participants</button>
+                <button class="tab-btn" onclick="switchTab('sensory')">Sensory Survey</button>
                 <button class="tab-btn" onclick="switchTab('progress')">Progress Survey</button>
-                <button class="tab-btn" onclick="switchTab('participants')">Participants</button>
             </div>
 
             <!-- Sensory Survey 탭 -->
-            <div id="sensoryTab" class="tab-content active">
+            <div id="sensoryTab" class="tab-content">
                 <div class="filter-section">
                     <h3 style="margin-bottom: 15px; color: #667eea;">📋 Select Session</h3>
                     <div class="filter-row">
@@ -117,9 +120,37 @@
             </div>
 
             <!-- Participants 탭 -->
-            <div id="participantsTab" class="tab-content">
-                <div class="stats-grid" id="participantStats"></div>
-                <div class="response-list" id="participantList"></div>
+            <div id="participantsTab" class="tab-content active">
+                <div class="filter-section">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">📋 Select Session</h3>
+                    <div class="filter-row">
+                        <div style="flex: 2;">
+                            <label>Session</label>
+                            <select id="participantSessionFilter">
+                                <option value="">-- Select a Session --</option>
+                            </select>
+                        </div>
+                        <button onclick="loadParticipantData()">Load Data</button>
+                    </div>
+                </div>
+
+                <div id="participantContent" style="display: none;">
+                    <h3 style="margin: 20px 0; color: #667eea;">📊 Session Overview</h3>
+                    <div class="stats-grid" id="participantStats"></div>
+
+                    <h3 style="margin: 30px 0 20px 0; color: #667eea;">👥 Participants</h3>
+                    <div class="response-list" id="participantList"></div>
+                </div>
+
+                <div id="participantDetailView" style="display: none;">
+                    <!-- 개별 참여자 상세 정보가 여기 표시됩니다 -->
+                </div>
+
+                <div id="participantEmpty" class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <h3>Select a Session</h3>
+                    <p>세션을 선택하면 참가자 목록을 확인할 수 있습니다.</p>
+                </div>
             </div>
         </div>
     </div>
