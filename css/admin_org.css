@@ -1,4 +1,4 @@
-/* Admin 페이지 전용 CSS - 슬로우 웨어 크루 스타일 */
+/* Admin 페이지 전용 CSS (원본 보라색 테마) */
 
 /* 기본 리셋 */
 * {
@@ -7,14 +7,11 @@
     box-sizing: border-box;
 }
 
-/* [SWT] Body 배경 - 따뜻한 베이지/크림 그라데이션 */
 body {
-    font-family: 'Caudex', 'SUITE', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(135deg, #F5E6D3 0%, #FFE8D6 50%, #E6F2F5 100%); /* [SWT] 배경 그라데이션 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
-    letter-spacing: 0;
-    color: #333;
 }
 
 .container {
@@ -26,7 +23,7 @@ body {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(255, 107, 74, 0.15);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
 .login-box {
@@ -35,17 +32,16 @@ body {
 }
 
 h1 {
-    color: #333;
+    color: #667eea;
     margin-bottom: 30px;
     text-align: center;
-    font-weight: 700;
 }
 
 h2 {
-    color: #333;
+    color: #667eea;
     margin: 30px 0 20px 0;
     padding-bottom: 10px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #667eea;
 }
 
 .input-group {
@@ -55,8 +51,8 @@ h2 {
 label {
     display: block;
     margin-bottom: 8px;
-    color: #333;
-    font-weight: 600;
+    color: #555;
+    font-weight: 500;
 }
 
 input, select {
@@ -65,34 +61,29 @@ input, select {
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 16px;
-    font-family: 'Caudex', 'SUITE', sans-serif;
     transition: border-color 0.3s;
 }
 
 input:focus, select:focus {
     outline: none;
-    border-color: #FF6B4A; /* [SWT] 포커스 시 테두리 */
+    border-color: #667eea;
 }
 
-/* [SWT] 버튼 - 코랄/오렌지 그라데이션 */
 button {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #FF6B4A 0%, #FF8B7A 100%); /* [SWT] 버튼 배경 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Caudex', 'SUITE', sans-serif;
-    box-shadow: 0 4px 15px rgba(255, 107, 74, 0.3); /* [SWT] 버튼 그림자 */
+    transition: transform 0.2s;
 }
 
 button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4); /* [SWT] 호버 시 그림자 */
 }
 
 button:disabled {
@@ -110,24 +101,18 @@ button:disabled {
 .tab-btn {
     flex: 1;
     padding: 12px;
-    background: white;
+    background: #f0f0f0;
     color: #666;
-    border: 2px solid #e0e0e0;
+    border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s;
-    box-shadow: none;
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, #FF6B4A 0%, #FF8B7A 100%); /* [SWT] 활성 탭 배경 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-color: #FF6B4A; /* [SWT] 활성 탭 테두리 */
-}
-
-.tab-btn:hover {
-    border-color: #FF6B4A; /* [SWT] 호버 시 테두리 */
 }
 
 .tab-content {
@@ -139,11 +124,10 @@ button:disabled {
 }
 
 .filter-section {
-    background: #fafafa;
+    background: #f8f9fa;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     margin-bottom: 20px;
-    border: 1px solid #e0e0e0;
 }
 
 .filter-row {
@@ -168,19 +152,17 @@ button:disabled {
     margin-bottom: 20px;
 }
 
-/* [SWT] 통계 카드 */
 .stat-card {
-    background: #FFF5F3; /* [SWT] 통계 카드 배경 - 밝은 핑크 */
+    background: #f8f9fa;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 8px;
     text-align: center;
-    border: 1px solid #FFD7CF; /* [SWT] 통계 카드 테두리 */
 }
 
 .stat-value {
     font-size: 32px;
     font-weight: 700;
-    color: #333;
+    color: #667eea;
     margin-bottom: 5px;
 }
 
@@ -190,10 +172,9 @@ button:disabled {
 }
 
 .response-list {
-    background: #fafafa;
-    border-radius: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #e0e0e0;
 }
 
 .response-item {
@@ -201,7 +182,7 @@ button:disabled {
     margin: 10px;
     padding: 20px;
     border-radius: 8px;
-    border-left: 4px solid #FF6B4A; /* [SWT] 응답 아이템 좌측 강조 */
+    border-left: 4px solid #667eea;
 }
 
 .response-header {
@@ -216,11 +197,11 @@ button:disabled {
 .participant-id {
     font-size: 18px;
     font-weight: 700;
-    color: #333;
+    color: #667eea;
 }
 
 .response-week {
-    background: linear-gradient(135deg, #FF6B4A 0%, #FF8B7A 100%); /* [SWT] 주차 배지 */
+    background: #667eea;
     color: white;
     padding: 5px 15px;
     border-radius: 20px;
@@ -233,7 +214,7 @@ button:disabled {
 
 .category-title {
     font-weight: 600;
-    color: #333;
+    color: #555;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -241,11 +222,10 @@ button:disabled {
 }
 
 .question-item {
-    background: #fafafa;
+    background: #f8f9fa;
     padding: 12px;
     margin-bottom: 8px;
     border-radius: 6px;
-    border: 1px solid #e0e0e0;
 }
 
 .question-text {
@@ -262,7 +242,7 @@ button:disabled {
 
 .answer-value {
     font-weight: 600;
-    color: #333;
+    color: #667eea;
 }
 
 .answer-note {
@@ -292,15 +272,9 @@ button:disabled {
     display: none;
 }
 
-/* [SWT] 로그아웃 버튼 - 빨간색 */
 .logout-btn {
-    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); /* [SWT] 로그아웃 버튼 배경 */
-    border: none;
+    background: #dc3545;
     margin-top: 20px;
-}
-
-.logout-btn:hover {
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4); /* [SWT] 호버 시 그림자 */
 }
 
 .empty-state {
@@ -315,41 +289,38 @@ button:disabled {
 }
 
 .error-message {
-    background: #f8d7da;
-    color: #721c24;
+    background: #fee;
+    color: #c33;
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 15px;
     font-size: 14px;
     display: none;
-    border: 1px solid #f5c6cb;
 }
 
 .error-message.show {
     display: block;
 }
 
-/* [SWT] 사용자 정보 */
 .user-info {
-    background: #FFF5F3; /* [SWT] 사용자 정보 배경 - 밝은 핑크 */
+    background: #f0f0f0;
     padding: 10px 15px;
     border-radius: 8px;
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid #FFD7CF; /* [SWT] 사용자 정보 테두리 */
 }
 
 .user-email {
-    color: #333;
+    color: #667eea;
     font-weight: 600;
 }
 
 .loading {
     text-align: center;
     padding: 40px;
-    color: #333;
+    color: #667eea;
 }
 
 .loading::after {
@@ -357,38 +328,33 @@ button:disabled {
     animation: dots 1.5s steps(4, end) infinite;
 }
 
-/* [SWT] 민감도 배지 */
+/* 민감도 배지 스타일 */
 .admin-sensitivity {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
     display: inline-block;
-    border: 1px solid;
 }
 
 .admin-sensitivity.low {
-    background: #d4edda; /* [SWT] 낮음 - 초록색 */
+    background: #d4edda;
     color: #155724;
-    border-color: #c3e6cb;
 }
 
 .admin-sensitivity.medium {
-    background: #fff3cd; /* [SWT] 보통 - 노란색 */
+    background: #fff3cd;
     color: #856404;
-    border-color: #ffeaa7;
 }
 
 .admin-sensitivity.high {
-    background: #f8d7da; /* [SWT] 높음 - 빨간색 */
+    background: #f8d7da;
     color: #721c24;
-    border-color: #f5c6cb;
 }
 
 .admin-sensitivity.na {
-    background: #e9ecef; /* [SWT] N/A - 회색 */
+    background: #e9ecef;
     color: #495057;
-    border-color: #dee2e6;
 }
 
 @keyframes dots {

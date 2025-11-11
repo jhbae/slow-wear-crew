@@ -1,0 +1,61 @@
+/* index.html 전용 CSS (원본 보라색 테마) */
+
+/* 화면 전환 */
+.login-screen,
+.survey-select-screen {
+    display: none;
+}
+
+.login-screen.active,
+.survey-select-screen.active {
+    display: block;
+}
+
+/* 링크 그리드 */
+.link-grid {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.btn-link {
+    flex: 1;
+    display: block;
+    padding: 18px;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    color: white;
+    transition: transform 0.2s;
+}
+
+#link-sensory {
+    background: #FF99AA;
+}
+
+#link-progress {
+    background: #667eea;
+}
+
+/* Admin 링크 */
+.admin-link {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.admin-link:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
