@@ -23,7 +23,15 @@ async function login() {
         if (adminSnapshot.exists()) {
             isAdmin = true;
             sessionStorage.setItem('isAdmin', 'true');
-            location.hash = '#select';
+            
+            // returnUrl 확인
+            const returnUrl = sessionStorage.getItem('returnUrl');
+            if (returnUrl) {
+                sessionStorage.removeItem('returnUrl');
+                window.location.href = returnUrl;
+            } else {
+                location.hash = '#select';
+            }
             return;
         }
         
@@ -57,7 +65,14 @@ async function login() {
             // 마지막 접속 시간 업데이트
             await database.ref(`participants/${userId}/lastAccess`).set(new Date().toISOString());
             
-            location.hash = '#select'; 
+            // returnUrl 확인 - sensory.html 등에서 돌아온 경우
+            const returnUrl = sessionStorage.getItem('returnUrl');
+            if (returnUrl) {
+                sessionStorage.removeItem('returnUrl');
+                window.location.href = returnUrl;
+            } else {
+                location.hash = '#select';
+            }
         } else {
             alert('유효하지 않은 코드 또는 비밀번호입니다.');
         }
