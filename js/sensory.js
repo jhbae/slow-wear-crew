@@ -397,14 +397,6 @@ function collectResponses(isFinalSubmit = true) {
     return { data, allAnswered };
 }
 
-// 민감도 계산
-function calculateSensitivity(score, scoreRange) {
-    if (score >= scoreRange.low[0] && score <= scoreRange.low[1]) return { level: 'low', text: '낮음' };
-    if (score >= scoreRange.medium[0] && score <= scoreRange.medium[1]) return { level: 'medium', text: '보통' };
-    if (score >= scoreRange.high[0] && score <= scoreRange.high[1]) return { level: 'high', text: '높음' };
-    return { level: 'medium', text: '보통' };
-}
-
 // 설문 제출
 async function submitSurvey() {
     const { data, allAnswered } = collectResponses(true);
@@ -771,3 +763,4 @@ window.addEventListener('load', () => {
 });
 
 window.addEventListener('hashchange', handleRouteChange);
+
