@@ -1,7 +1,12 @@
 /* sensory.html 전용 CSS */
 
+/* 컨테이너 오버라이드 - 대시보드용 넓은 화면 */
+.container {
+    max-width: 1200px;
+}
+
 /* 화면 전환 */
-.login-screen, 
+.participant-dashboard-screen, 
 .participant-dashboard-screen, 
 .survey-screen, 
 .result-screen, 
@@ -9,7 +14,7 @@
     display: none;
 }
 
-.login-screen.active, 
+.participant-dashboard-screen.active, 
 .participant-dashboard-screen.active, 
 .survey-screen.active, 
 .result-screen.active, 
