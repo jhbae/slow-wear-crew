@@ -1,0 +1,226 @@
+/* progress.html 전용 CSS (원본 보라색 테마) */
+
+/* 컨테이너 오버라이드 */
+.container {
+    max-width: 900px;
+}
+
+/* 화면 전환 */
+.progress-dashboard-screen {
+    display: none;
+}
+
+.progress-dashboard-screen.active {
+    display: block;
+}
+
+/* 세션 정보 카드 */
+.session-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.session-info-card h3 {
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.session-info-card p {
+    opacity: 0.95;
+    font-size: 14px;
+}
+
+/* 미션 리스트 */
+.mission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* 미션 카드 */
+.mission-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 25px;
+    transition: all 0.3s;
+}
+
+.mission-card.completed {
+    border-color: #28a745;
+    background: #f8fff9;
+}
+
+.mission-card:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 미션 헤더 */
+.mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.mission-week {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.mission-status {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mission-status.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.mission-status.incomplete {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* 미션 내용 */
+.mission-content {
+    margin-bottom: 20px;
+}
+
+.mission-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+/* 입력 그룹 */
+.input-section {
+    margin-bottom: 20px;
+}
+
+.input-section label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.3s;
+}
+
+.input-section textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.input-section textarea:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* 버튼 영역 */
+.mission-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.mission-actions button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+}
+
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 읽기 모드 (이미 제출한 경우) */
+.mission-card.view-mode .input-section textarea {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+}
+
+.mission-card.view-mode .mission-actions {
+    display: none;
+}
+
+/* 타임스탬프 */
+.mission-timestamp {
+    font-size: 12px;
+    color: #999;
+    text-align: right;
+    margin-top: 10px;
+}
+
+/* 빈 상태 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+    .mission-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .mission-actions {
+        flex-direction: column;
+    }
+
+    .mission-actions button {
+        width: 100%;
+    }
+}
