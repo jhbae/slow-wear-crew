@@ -9,14 +9,22 @@ let responsesData = {};
 // 페이지 로드 시 초기화
 window.addEventListener('DOMContentLoaded', async () => {
     // 로그인 체크
-    const userInfo = sessionStorage.getItem('userInfo');
-    if (!userInfo) {
+    const savedUser = sessionStorage.getItem('currentUser');
+    const savedSessionId = sessionStorage.getItem('currentSessionId');
+
+    if (!savedUser || !savedSessionId) {
         alert('로그인이 필요합니다.');
         window.location.href = 'index.html';
         return;
     }
 
-    currentUser = JSON.parse(userInfo);
+    // 전역 변수에 저장
+    currentUser = {
+        participantId: savedUser,
+        sessionId: savedSessionId,
+        accessCode: sessionStorage.getItem('accessCode'),
+        pet: sessionStorage.getItem('petName') || '반려견'
+    };
 
     try {
         await loadData();
@@ -137,19 +145,19 @@ function renderDashboard() {
                     <div class="input-section">
                         <label>🐾 반려견의 반응</label>
                         <textarea
-                            id="${week}-reaction"
+                            id="${week}-dogReaction"
                             placeholder="반려견이 어떻게 반응했나요? 자유롭게 기록해주세요."
                             ${isCompleted ? 'disabled' : ''}
-                        >${response ? response.reaction : ''}</textarea>
+                        >${response ? response.dogReaction : ''}</textarea>
                     </div>
 
                     <div class="input-section">
-                        <label>📝 기타 메모</label>
+                        <label>📝 보호자 메모</label>
                         <textarea
-                            id="${week}-memo"
+                            id="${week}-guardianMemo"
                             placeholder="추가로 기록하고 싶은 내용을 작성해주세요."
                             ${isCompleted ? 'disabled' : ''}
-                        >${response ? response.memo : ''}</textarea>
+                        >${response ? response.guardianMemo : ''}</textarea>
                     </div>
 
                     ${isCompleted ? `
@@ -171,15 +179,15 @@ function renderDashboard() {
 
 // 미션 저장
 async function saveMission(week) {
-    const reactionEl = document.getElementById(`${week}-reaction`);
-    const memoEl = document.getElementById(`${week}-memo`);
+    const dogReactionEl = document.getElementById(`${week}-dogReaction`);
+    const guardianMemoEl = document.getElementById(`${week}-guardianMemo`);
 
-    const reaction = reactionEl.value.trim();
-    const memo = memoEl.value.trim();
+    const dogReaction = dogReactionEl.value.trim();
+    const guardianMemo = guardianMemoEl.value.trim();
 
-    if (!reaction) {
+    if (!dogReaction) {
         alert('반려견의 반응을 입력해주세요.');
-        reactionEl.focus();
+        dogReactionEl.focus();
         return;
     }
 
@@ -189,8 +197,8 @@ async function saveMission(week) {
     try {
         const db = firebase.database();
         const responseData = {
-            reaction,
-            memo,
+            dogReaction,
+            guardianMemo,
             timestamp: new Date().toISOString()
         };
 

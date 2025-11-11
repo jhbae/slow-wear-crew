@@ -59,6 +59,7 @@ async function login() {
             sessionStorage.setItem('currentUser', userId);
             sessionStorage.setItem('currentSessionId', userData.sessionId);
             sessionStorage.setItem('accessCode', input.toUpperCase());
+            sessionStorage.setItem('petName', userData.pet || '반려견');
             sessionStorage.setItem('sensorySurveyTemplateId', sessionData.sensorySurveyTemplateId);
             sessionStorage.setItem('wearingProgressSurveyTemplateId', sessionData.wearingProgressSurveyTemplateId);
             

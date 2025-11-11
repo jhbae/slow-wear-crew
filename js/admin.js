@@ -140,13 +140,24 @@ async function loadAllData() {
 }
 
 function populateFilters() {
-    const sessionSelect = document.getElementById('sensorySessionFilter');
-    sessionSelect.innerHTML = '<option value="">-- Select a Session --</option>';
+    // Sensory 필터
+    const sensorySessionSelect = document.getElementById('sensorySessionFilter');
+    sensorySessionSelect.innerHTML = '<option value="">-- Select a Session --</option>';
     Object.entries(allData.sessions).forEach(([id, session]) => {
         const option = document.createElement('option');
         option.value = id;
         option.textContent = `${session.name} (${session.startDate} ~ ${session.endDate})`;
-        sessionSelect.appendChild(option);
+        sensorySessionSelect.appendChild(option);
+    });
+
+    // Progress 필터
+    const progressSessionSelect = document.getElementById('progressSessionFilter');
+    progressSessionSelect.innerHTML = '<option value="">-- Select a Session --</option>';
+    Object.entries(allData.sessions).forEach(([id, session]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `${session.name} (${session.startDate} ~ ${session.endDate})`;
+        progressSessionSelect.appendChild(option);
     });
 }
 
@@ -447,6 +458,230 @@ function downloadFile(content, filename, mimeType) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+window.loadProgressData = function() {
+    const sessionFilter = document.getElementById('progressSessionFilter').value;
+
+    if (!sessionFilter) {
+        document.getElementById('progressContent').style.display = 'none';
+        document.getElementById('progressEmpty').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('progressContent').style.display = 'block';
+    document.getElementById('progressEmpty').style.display = 'none';
+
+    const sessionParticipants = Object.entries(allData.participants)
+        .filter(([id, data]) => data.sessionId === sessionFilter)
+        .map(([id]) => id);
+
+    const participantData = sessionParticipants.map(participantId => {
+        const participant = allData.participants[participantId];
+        const responses = allData.responses[participantId] || {};
+
+        return {
+            participantId,
+            petName: participant.pet,
+            accessCode: participant.accessCode,
+            lastAccess: participant.lastAccess,
+            week1: responses.week1?.progress || null,
+            week2: responses.week2?.progress || null,
+            week3: responses.week3?.progress || null,
+            week4: responses.week4?.progress || null
+        };
+    });
+
+    displayProgressStats(sessionFilter, participantData);
+    displayProgressByParticipant(participantData);
+};
+
+function displayProgressStats(sessionId, participantData) {
+    const statsDiv = document.getElementById('progressStats');
+
+    const totalParticipants = participantData.length;
+    const week1Responses = participantData.filter(p => p.week1).length;
+    const week2Responses = participantData.filter(p => p.week2).length;
+    const week3Responses = participantData.filter(p => p.week3).length;
+    const week4Responses = participantData.filter(p => p.week4).length;
+    const allWeeksComplete = participantData.filter(p => p.week1 && p.week2 && p.week3 && p.week4).length;
+
+    statsDiv.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-value">${totalParticipants}</div>
+            <div class="stat-label">Total Participants</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${week1Responses}</div>
+            <div class="stat-label">Week 1 Responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${week2Responses}</div>
+            <div class="stat-label">Week 2 Responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${week3Responses}</div>
+            <div class="stat-label">Week 3 Responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${week4Responses}</div>
+            <div class="stat-label">Week 4 Responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">${allWeeksComplete}</div>
+            <div class="stat-label">All Weeks Complete</div>
+        </div>
+    `;
+}
+
+function displayProgressByParticipant(participantData) {
+    const listDiv = document.getElementById('progressResponseList');
+
+    if (participantData.length === 0) {
+        listDiv.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3>No participants in this session</h3>
+            </div>
+        `;
+        return;
+    }
+
+    listDiv.innerHTML = participantData.map(participant => {
+        const hasWeek1 = !!participant.week1;
+        const hasWeek2 = !!participant.week2;
+        const hasWeek3 = !!participant.week3;
+        const hasWeek4 = !!participant.week4;
+        const completedCount = [hasWeek1, hasWeek2, hasWeek3, hasWeek4].filter(Boolean).length;
+
+        let statusBadge = '';
+        if (completedCount === 4) {
+            statusBadge = '<span style="background: #28a745; color: white; padding: 5px 12px; border-radius: 12px; font-size: 12px; margin-left: 10px;">✓ Complete (4/4)</span>';
+        } else if (completedCount > 0) {
+            statusBadge = `<span style="background: #ffc107; color: white; padding: 5px 12px; border-radius: 12px; font-size: 12px; margin-left: 10px;">⚠ Partial (${completedCount}/4)</span>`;
+        } else {
+            statusBadge = '<span style="background: #dc3545; color: white; padding: 5px 12px; border-radius: 12px; font-size: 12px; margin-left: 10px;">✗ No Response</span>';
+        }
+
+        const weekHTML = ['week1', 'week2', 'week3', 'week4'].map((week, index) => {
+            const weekNum = index + 1;
+            const weekData = participant[week];
+            const hasData = !!weekData;
+
+            return `
+                <div style="border: 2px solid ${hasData ? '#28a745' : '#e0e0e0'}; border-radius: 8px; padding: 15px; background: ${hasData ? '#f8fff9' : '#fafafa'};">
+                    <h4 style="color: #667eea; margin-bottom: 15px; text-align: center;">Week ${weekNum} ${hasData ? '✓' : ''}</h4>
+                    ${hasData ? `
+                        <div class="question-item">
+                            <div class="question-text" style="font-weight: 600; color: #333; margin-bottom: 8px;">🐾 반려견의 반응</div>
+                            <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; white-space: pre-wrap;">${weekData.dogReaction}</div>
+                        </div>
+                        ${weekData.guardianMemo ? `
+                            <div class="question-item" style="margin-top: 15px;">
+                                <div class="question-text" style="font-weight: 600; color: #333; margin-bottom: 8px;">📝 보호자 메모</div>
+                                <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; white-space: pre-wrap;">${weekData.guardianMemo}</div>
+                            </div>
+                        ` : ''}
+                        <div style="font-size: 11px; color: #999; margin-top: 10px; text-align: right;">
+                            ${new Date(weekData.timestamp).toLocaleString('ko-KR')}
+                        </div>
+                    ` : `
+                        <div style="padding: 20px; text-align: center; color: #999;">응답 없음</div>
+                    `}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="response-item">
+                <div class="response-header">
+                    <div>
+                        <span class="participant-id">${participant.participantId} - ${participant.petName}</span>
+                        ${statusBadge}
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            Access Code: ${participant.accessCode} | Last Access: ${new Date(participant.lastAccess).toLocaleString('ko-KR')}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                    ${weekHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.exportProgressCSV = function() {
+    const sessionFilter = document.getElementById('progressSessionFilter').value;
+    if (!sessionFilter) {
+        alert('세션을 먼저 선택하세요.');
+        return;
+    }
+
+    const sessionParticipants = Object.entries(allData.participants)
+        .filter(([id, data]) => data.sessionId === sessionFilter)
+        .map(([id]) => id);
+
+    let rows = [['Participant ID', 'Pet Name', 'Access Code', 'Week', 'Dog Reaction', 'Guardian Memo', 'Timestamp']];
+
+    sessionParticipants.forEach(participantId => {
+        const participant = allData.participants[participantId];
+        const responses = allData.responses[participantId] || {};
+
+        ['week1', 'week2', 'week3', 'week4'].forEach(week => {
+            const weekData = responses[week]?.progress;
+            if (weekData) {
+                rows.push([
+                    participantId,
+                    participant.pet || '',
+                    participant.accessCode,
+                    week,
+                    weekData.dogReaction || '',
+                    weekData.guardianMemo || '',
+                    weekData.timestamp
+                ]);
+            }
+        });
+    });
+
+    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const session = allData.sessions[sessionFilter];
+    downloadFile(csv, `progress-survey-${session.name.replace(/\s+/g, '-')}.csv`, 'text/csv');
+};
+
+window.exportProgressJSON = function() {
+    const sessionFilter = document.getElementById('progressSessionFilter').value;
+    if (!sessionFilter) {
+        alert('세션을 먼저 선택하세요.');
+        return;
+    }
+
+    const sessionParticipants = Object.entries(allData.participants)
+        .filter(([id, data]) => data.sessionId === sessionFilter)
+        .map(([id]) => id);
+
+    let exportData = {};
+    sessionParticipants.forEach(participantId => {
+        const participant = allData.participants[participantId];
+        const responses = allData.responses[participantId];
+        if (responses) {
+            exportData[participantId] = {
+                petName: participant.pet || '',
+                accessCode: participant.accessCode,
+                progressResponses: {
+                    week1: responses.week1?.progress || null,
+                    week2: responses.week2?.progress || null,
+                    week3: responses.week3?.progress || null,
+                    week4: responses.week4?.progress || null
+                }
+            };
+        }
+    });
+
+    const json = JSON.stringify(exportData, null, 2);
+    const session = allData.sessions[sessionFilter];
+    downloadFile(json, `progress-survey-${session.name.replace(/\s+/g, '-')}.json`, 'application/json');
+};
 
 window.switchTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
