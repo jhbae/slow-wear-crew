@@ -106,28 +106,39 @@ window.adminLogout = async function() {
 };
 
 async function loadAllData() {
+    console.log('[DEBUG] loadAllData 시작');
     try {
         // Sessions
+        console.log('[DEBUG] Sessions 로드 중...');
         const sessionsSnapshot = await db.ref('sessions').once('value');
         allData.sessions = sessionsSnapshot.val() || {};
+        console.log('[DEBUG] Sessions 로드 완료:', allData.sessions);
 
         // Surveys
+        console.log('[DEBUG] Surveys 로드 중...');
         const surveysSnapshot = await db.ref('surveys').once('value');
         allData.surveys = surveysSnapshot.val() || {};
+        console.log('[DEBUG] Surveys 로드 완료:', allData.surveys);
 
         // Participants
+        console.log('[DEBUG] Participants 로드 중...');
         const participantsSnapshot = await db.ref('participants').once('value');
         allData.participants = participantsSnapshot.val() || {};
+        console.log('[DEBUG] Participants 로드 완료:', allData.participants);
 
         // Responses (전체 조회 가능 - auth != null)
+        console.log('[DEBUG] Responses 로드 중...');
         const responsesSnapshot = await db.ref('responses').once('value');
         allData.responses = responsesSnapshot.val() || {};
+        console.log('[DEBUG] Responses 로드 완료:', allData.responses);
 
         // UI 업데이트
+        console.log('[DEBUG] UI 업데이트 시작');
         populateFilters();
         loadParticipantData();
+        console.log('[DEBUG] loadAllData 완료');
     } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('[ERROR] 데이터 로드 중 오류:', error);
         alert('데이터 로드 중 오류가 발생했습니다.');
     }
 }
