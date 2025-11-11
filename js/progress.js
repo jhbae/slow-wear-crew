@@ -22,8 +22,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         await loadData();
         renderDashboard();
     } catch (error) {
-        console.error('데이터 로드 실패:', error);
-        alert('데이터를 불러오는 중 오류가 발생했습니다.');
+        console.error('❌ 데이터 로드 실패:', error);
+        console.error('상세 정보:', {
+            participantId: currentUser.participantId,
+            sessionId: currentUser.sessionId,
+            error: error.message
+        });
+        alert('문제가 발생했습니다.\n관리자에게 문의해주세요.\n\n(개발자: 콘솔을 확인하세요)');
     }
 });
 
@@ -36,7 +41,11 @@ async function loadData() {
     sessionData = sessionSnapshot.val();
 
     if (!sessionData) {
-        throw new Error('세션 정보를 찾을 수 없습니다.');
+        console.error('❌ 세션 정보 없음:', {
+            sessionId: currentUser.sessionId,
+            path: `sessions/${currentUser.sessionId}`
+        });
+        throw new Error(`세션 정보를 찾을 수 없습니다. (sessionId: ${currentUser.sessionId})`);
     }
 
     // 설문 템플릿 로드
@@ -45,8 +54,19 @@ async function loadData() {
     surveyTemplate = surveySnapshot.val();
 
     if (!surveyTemplate) {
-        throw new Error('설문 템플릿을 찾을 수 없습니다.');
+        console.error('❌ 설문 템플릿 없음:', {
+            templateId,
+            path: `surveys/${templateId}`
+        });
+        throw new Error(`설문 템플릿을 찾을 수 없습니다. (templateId: ${templateId})`);
     }
+
+    console.log('✅ 데이터 로드 성공:', {
+        sessionId: currentUser.sessionId,
+        sessionName: sessionData.name,
+        templateId,
+        hasMissions: !!surveyTemplate.missions
+    });
 
     // 기존 응답 로드
     const responsesSnapshot = await db.ref(`responses/${currentUser.participantId}`).once('value');
@@ -169,13 +189,24 @@ async function saveMission(week) {
         // 로컬 데이터 업데이트
         responsesData[week] = responseData;
 
+        console.log('✅ 저장 성공:', {
+            participantId: currentUser.participantId,
+            week,
+            timestamp: responseData.timestamp
+        });
+
         alert('저장되었습니다! 🎉');
 
         // 화면 다시 렌더링
         renderDashboard();
     } catch (error) {
-        console.error('저장 실패:', error);
-        alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+        console.error('❌ 저장 실패:', error);
+        console.error('상세 정보:', {
+            participantId: currentUser.participantId,
+            week,
+            path: `responses/${currentUser.participantId}/${week}/progress`
+        });
+        alert('저장 중 문제가 발생했습니다.\n관리자에게 문의해주세요.\n\n(개발자: 콘솔을 확인하세요)');
     }
 }
 

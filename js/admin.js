@@ -120,11 +120,22 @@ async function loadAllData() {
         const responsesSnapshot = await db.ref('responses').once('value');
         allData.responses = responsesSnapshot.val() || {};
 
+        console.log('✅ Admin 데이터 로드 성공:', {
+            sessionsCount: Object.keys(allData.sessions).length,
+            participantsCount: Object.keys(allData.participants).length,
+            responsesCount: Object.keys(allData.responses).length
+        });
+
         // UI 업데이트
         populateFilters();
         loadParticipantData();
     } catch (error) {
-        alert('데이터 로드 중 오류가 발생했습니다.');
+        console.error('❌ Admin 데이터 로드 실패:', error);
+        console.error('상세 정보:', {
+            paths: 'sessions, surveys, participants, responses',
+            error: error.message
+        });
+        alert('문제가 발생했습니다.\n관리자에게 문의해주세요.\n\n(개발자: 콘솔을 확인하세요)');
     }
 }
 
