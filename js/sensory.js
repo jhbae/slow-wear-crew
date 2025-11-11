@@ -10,7 +10,7 @@ let adminSessionList = [];
 
 // 화면 전환
 function showScreen(screenName) {
-    document.querySelectorAll('.login-screen, .participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
+    document.querySelectorAll('.participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
         screen.classList.remove('active');
     });
     document.querySelector(`.${screenName}`).classList.add('active');
@@ -20,7 +20,7 @@ function showScreen(screenName) {
 // sensorySurveyData가 로드되었는지 확인하고, 안됐으면 로드하는 함수
 async function ensureSurveyDataLoaded() {
     // 1. 이미 로드했다면 즉시 종료
-    if (surveyData) return true; 
+    if (surveyData) return true;
 
     // 2. 세션 저장소에서 템플릿 ID 가져오기 (로그인 시 저장함)
     currentSurveyTemplateId = sessionStorage.getItem('sensorySurveyTemplateId');
@@ -33,13 +33,13 @@ async function ensureSurveyDataLoaded() {
     try {
         // 3. Firebase에서 실제 설문지 데이터 로드
         const surveySnapshot = await database.ref(`surveys/${currentSurveyTemplateId}`).once('value');
-        
+
         if (!surveySnapshot.exists()) {
             alert('오류: 설문지를 찾을 수 없습니다.');
             logout();
             return false;
         }
-        
+
         // 4. 전역 변수에 저장
         surveyData = surveySnapshot.val();
         return true;
@@ -53,79 +53,6 @@ async function ensureSurveyDataLoaded() {
 }
 
 // 통합 로그인 (쿼리 기반)
-async function login() {
-    const input = document.getElementById('loginInput').value.trim();
-    
-    if (!input) {
-        alert('코드 또는 비밀번호를 입력해주세요.');
-        return;
-    }
-
-    if (!database) {
-        alert('Firebase가 설정되지 않았습니다.');
-        return;
-    }
-
-    try {
-        // 1. 관리자 확인
-        const adminSnapshot = await database.ref(`admin/${input}`).once('value');
-        
-        if (adminSnapshot.exists()) {
-            // 관리자 로그인
-            isAdmin = true;
-            sessionStorage.setItem('isAdmin', 'true');
-            sessionStorage.setItem('adminPassword', input);
-            location.hash = '#admin';
-            return;
-        }
-        
-        // 2. 참가자 코드 확인 (쿼리 사용)
-        const participantsSnapshot = await database.ref('participants')
-            .orderByChild('accessCode')
-            .equalTo(input.toUpperCase())
-            .once('value');
-        
-        const participants = participantsSnapshot.val();
-        
-        if (participants && Object.keys(participants).length > 0) {
-            // 참가자 발견!
-            const userId = Object.keys(participants)[0];
-            const userData = participants[userId];
-
-            // ✅ [추가] 세션 정보를 가져와서 surveyTemplateId 확보
-            const sessionSnapshot = await database.ref(`sessions/${userData.sessionId}`).once('value');
-            const sessionData = sessionSnapshot.val();
-            
-            if (!sessionData || !sessionData.sensorySurveyTemplateId) {
-                alert('오류: 이 세션에 할당된 설문지가 없습니다.');
-                return;
-            }
-            
-            currentUser = userId;
-            currentSessionId = userData.sessionId;
-            
-            sessionStorage.setItem('currentUser', userId);
-            sessionStorage.setItem('currentSessionId', userData.sessionId);
-            sessionStorage.setItem('accessCode', input.toUpperCase());
-            // ✅ [추가] surveyTemplateId를 세션 저장소에 저장 (새로고침 대비)
-            sessionStorage.setItem('sensorySurveyTemplateId', sessionData.sensorySurveyTemplateId);
-            
-            // 마지막 접속 시간 업데이트
-            await database.ref(`participants/${userId}/lastAccess`)
-                .set(new Date().toISOString());
-            
-            // 참가자 대시보드로!
-            location.hash = '#dashboard';
-        } else {
-            alert('유효하지 않은 코드 또는 비밀번호입니다.');
-        }
-        
-    } catch (error) {
-        console.error('로그인 오류:', error);
-        alert('로그인 중 오류: ' + error.message);
-    }
-}
-
 // 로그아웃
 function logout() {
     currentUser = null;
@@ -136,53 +63,53 @@ function logout() {
     // ✅ [추가] 설문 데이터 초기화
     surveyData = null;
     currentSurveyTemplateId = null;
-    
+
     sessionStorage.clear();
-    document.getElementById('loginInput').value = '';
-    
-    location.hash = '#login';
+
+    // index.html로 이동
+    window.location.href = 'index.html';
 }
 
 // 참가자 대시보드 로드
 async function loadParticipantDashboard() {
     // ✅ [추가] 설문지 로드 확인
     if (!await ensureSurveyDataLoaded()) return;
-    
+
     if (!currentUser || !currentSessionId) return;
-    
+
     try {
         // 회차 정보 가져오기
         const sessionSnapshot = await database.ref(`sessions/${currentSessionId}`).once('value');
         const sessionData = sessionSnapshot.val() || {};
-        
+
         // 회차 정보 표시
         const sessionInfo = document.getElementById('sessionInfo');
         sessionInfo.innerHTML = `
             <strong>${sessionData.name || currentSessionId}</strong><br>
             ${sessionData.startDate || ''} ${sessionData.endDate ? `~ ${sessionData.endDate}` : ''}
         `;
-        
+
         // 내 응답 데이터 가져오기
         const responsesSnapshot = await database.ref(`responses/${currentUser}`).once('value');
         const myResponses = responsesSnapshot.val() || {};
-        
+
         // 진행 현황 표시
-        let completedWeeks = 0; 
+        let completedWeeks = 0;
         const targetWeeks = [1, 4]; // 1주차와 4주차만 처리
-        
+
         for (const week of targetWeeks) {
             const weekData = myResponses[`week${week}`];
-            
+
             // ✅ [수정] weekData가 존재하고, 그 안에 sensory 키가 존재하는지 확인
-            const isSubmitted = weekData && weekData.sensory; 
-            
+            const isSubmitted = weekData && weekData.sensory;
+
             if (isSubmitted) {
                 completedWeeks++;
             }
         }
 
-        
-        
+
+
         const progressDiv = document.getElementById('participantProgress');
         progressDiv.innerHTML = `
             <div style="font-size: 48px; font-weight: bold; color: white;">
@@ -195,34 +122,34 @@ async function loadParticipantDashboard() {
                 <div class="progress-fill" style="width: ${(completedWeeks/2)*100}%; background: white;"></div>
             </div>
         `;
-        
+
         // 주차별 카드
         const weekGrid = document.getElementById('weekGrid');
         weekGrid.innerHTML = '';
 
-        
-        
+
+
         for (const week of targetWeeks) {
             const weekData = myResponses[`week${week}`];
             const weekCard = document.createElement('div');
             weekCard.className = 'week-card-large';
 
             const isSubmitted = weekData && weekData.sensory;
-            
+
             if (isSubmitted) {
                 weekCard.classList.add('completed');
                 const submissionTime = weekData.sensory.timestamp;
-                
+
                 let categoryScores = '';
                 surveyData.categories.forEach((category) => {
                     const catData = weekData.sensory[category.id];
-                    
+
                     // ✅ [수정] catData가 있고, questions가 있을 때만 계산
                     if (catData && catData.questions) {
                         // ✅ [수정] 점수를 동적으로 계산
                         const calculatedTotal = catData.questions.reduce((sum, q) => sum + q.value, 0);
                         const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
-                        
+
                         categoryScores += `
                             <div class="score-item">
                                 <span>${category.icon} ${category.title}</span>
@@ -234,7 +161,7 @@ async function loadParticipantDashboard() {
                         `;
                     }
                 });
-                
+
                 weekCard.innerHTML = `
                     <div class="week-header">
                         <h3>${week}주차 ✓</h3>
@@ -259,10 +186,10 @@ async function loadParticipantDashboard() {
                     <button class="btn" onclick="location.hash = '#survey${week}'">설문 시작</button>
                 `;
             }
-            
+
             weekGrid.appendChild(weekCard);
         }
-        
+
     } catch (error) {
         console.error('대시보드 로드 오류:', error);
         alert('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -273,14 +200,14 @@ async function loadParticipantDashboard() {
 async function viewWeekDetail(week) {
     // ✅ [추가] 설문지 로드 확인
     if (!await ensureSurveyDataLoaded()) return;
-    
+
     currentWeek = week;
-    
+
     const snapshot = await database.ref(`responses/${currentUser}/week${week}/sensory`).once('value');
     const weekData = snapshot.val();
-    
+
     if (!weekData) return;
-    
+
     showResults(weekData);
 }
 
@@ -295,7 +222,7 @@ function startWeekSurvey(week) {
 // 대시보드로 돌아가기
 function backToDashboard() {
     loadParticipantDashboard();
-    
+
     location.hash = '#dashboard';
 }
 
@@ -318,16 +245,16 @@ function buildQuestionsHTML(category, catIndex, categoryResponseData, isReadOnly
     let questionsHTML = '';
     const disabledAttribute = isReadOnly ? 'disabled' : '';
     const readonlyAttribute = isReadOnly ? 'readonly' : '';
-    
+
     // placeholder 텍스트도 모드에 따라 변경
     const notePlaceholder = isReadOnly ? '특이사항 없음' : '특이사항 (선택사항)';
-    
+
     category.questions.forEach((questionText, qIndex) => {
         // name/id가 설문 폼과 결과 폼에서 충돌하지 않게 prefix 추가
         const qId = `${isReadOnly ? 'result_' : ''}${category.id}_${qIndex}`;
         const prevValue = categoryResponseData?.questions?.[qIndex]?.value || 0;
         const prevNote = categoryResponseData?.questions?.[qIndex]?.note || '';
-        
+
         questionsHTML += `
             <div class="question">
                 <div class="question-text">${catIndex + 1}-${qIndex + 1}. ${questionText}</div>
@@ -376,14 +303,14 @@ async function loadSurvey() {
         // ✅ [추가] 임시 저장 데이터 로드 및 병합 (Firebase 데이터보다 우선)
         const storageKey = `draft_sensory_week${currentWeek}_${currentUser}`;
         const draftString = localStorage.getItem(storageKey);
-        
+
         if (draftString) {
             const draftData = JSON.parse(draftString);
             // draftData를 기존 응답으로 사용하여 덮어씁니다.
-            previousResponses = draftData; 
+            previousResponses = draftData;
             console.log(`[임시 저장] ${currentWeek}주차 임시 응답을 불러왔습니다.`);
         }
-        
+
         surveyData.categories.forEach((category, catIndex) => {
             const categoryDiv = document.createElement('div');
             categoryDiv.className = 'category';
@@ -392,15 +319,15 @@ async function loadSurvey() {
             console.log(previousResponses);
 
             const categoryResponseData = previousResponses?.[category.id];
-            
+
             // [재사용] 헤더 + 질문 폼 (수정 가능 모드)
-            categoryDiv.innerHTML = 
-                buildCategoryHeaderHTML(category) + 
+            categoryDiv.innerHTML =
+                buildCategoryHeaderHTML(category) +
                 buildQuestionsHTML(category, catIndex, categoryResponseData, false);
-            
+
             content.appendChild(categoryDiv);
         });
-        
+
         updateProgress(); // 진행률 업데이트
     } catch (error) {
         console.error('설문 로드 오류:', error);
@@ -412,7 +339,7 @@ async function loadSurvey() {
 function updateProgress() {
     const totalQuestions = surveyData.categories.reduce((sum, cat) => sum + cat.questions.length, 0);
     let answered = 0;
-    
+
     surveyData.categories.forEach(category => {
         category.questions.forEach((_, qIndex) => {
             const qId = `${category.id}_${qIndex}`;
@@ -420,7 +347,7 @@ function updateProgress() {
             if (selected) answered++;
         });
     });
-    
+
     const progress = (answered / totalQuestions) * 100;
     document.getElementById('progressFill').style.width = progress + '%';
 }
@@ -428,7 +355,7 @@ function updateProgress() {
 // ✅ [추가] 임시 응답을 Session Storage에 저장
 function saveDraftResponse(currentWeek) {
     const tempResponses = collectResponses(false); // allAnswered 체크를 건너뛰기 위해 false 전달
-    
+
     // 데이터가 유효할 때만 저장 (로그인되지 않은 경우 등 제외)
     if (currentUser && tempResponses.data) {
         const storageKey = `draft_sensory_week${currentWeek}_${currentUser}`;
@@ -441,14 +368,14 @@ function collectResponses(isFinalSubmit = true) {
     const data = {
         timestamp: new Date().toISOString()
     };
-    
+
     let allAnswered = true;
-    
+
     surveyData.categories.forEach((category, catIndex) => {
         data[category.id] = {
             questions: []
         };
-        
+
         category.questions.forEach((_, qIndex) => {
             const qId = `${category.id}_${qIndex}`;
             const selected = document.querySelector(`input[name="${qId}"]:checked`);
@@ -458,7 +385,7 @@ function collectResponses(isFinalSubmit = true) {
             if (isFinalSubmit && !selected) {
                 allAnswered = false;
             }
-            
+
             const value = selected ? parseInt(selected.value) : 0;
             data[category.id].questions.push({
                 value: value,
@@ -466,7 +393,7 @@ function collectResponses(isFinalSubmit = true) {
             });
         });
     });
-    
+
     return { data, allAnswered };
 }
 
@@ -481,26 +408,26 @@ function calculateSensitivity(score, scoreRange) {
 // 설문 제출
 async function submitSurvey() {
     const { data, allAnswered } = collectResponses(true);
-    
+
     if (!allAnswered) {
         alert('모든 질문에 답해주세요.');
         return;
     }
-    
+
     if (!database || !currentUser) {
         alert('로그인이 필요합니다.');
         return;
     }
-    
+
     try {
         await database.ref(`responses/${currentUser}/week${currentWeek}/sensory`).set(data);
 
         // 임시 저장 데이터 삭제
         const storageKey = `draft_sensory_week${currentWeek}_${currentUser}`;
         localStorage.removeItem(storageKey);
-        
+
         alert('제출이 완료되었습니다!');
-        
+
         location.hash = '#dashboard';
     } catch (error) {
         console.error('제출 오류:', error);
@@ -512,21 +439,21 @@ async function submitSurvey() {
 function showResults(data) {
     const content = document.getElementById('resultContent');
     content.innerHTML = `<h3 style="margin-bottom: 20px;">${currentWeek}주차 결과</h3>`;
-    
+
     // surveyData의 카테고리 순서대로 반복
     surveyData.categories.forEach((category, catIndex) => {
         const categoryData = data[category.id];
-        
+
         if (!categoryData || !categoryData.questions) return;
 
         // 1. 민감도 및 총점 계산
         const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
         const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
-        
+
         // 2. [재사용] 질문 폼만 생성 (읽기 전용 모드)
         // (카테고리 헤더는 result-header가 대신하므로 여기선 호출 X)
         const questionsHTML = buildQuestionsHTML(category, catIndex, categoryData, true);
-        
+
         // 3. 최종 결과 카드 생성
         const resultCard = document.createElement('div');
         resultCard.className = 'result-card';
@@ -541,14 +468,14 @@ function showResults(data) {
             <div>
                 <span class="sensitivity ${sensitivity.level}">민감도: ${sensitivity.text}</span>
             </div>
-            
+
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-            
+
             ${questionsHTML}
         `;
         content.appendChild(resultCard);
     });
-    
+
     showScreen('result-screen');
 }
 
@@ -557,7 +484,7 @@ async function loadAdminPage() {
     try {
         const sessionsSnapshot = await database.ref('sessions').once('value');
         const sessions = sessionsSnapshot.val() || {};
-        
+
         const container = document.getElementById('adminContent');
         container.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -565,48 +492,48 @@ async function loadAdminPage() {
                 <button class="btn btn-secondary" onclick="logout()" style="width: auto; padding: 10px 20px;">로그아웃</button>
             </div>
         `;
-        
+
         if (Object.keys(sessions).length === 0) {
             container.innerHTML += '<div style="text-align: center; color: #999; padding: 40px;">등록된 회차가 없습니다.</div>';
             return;
         }
-        
+
         // 모든 참가자와 응답 데이터를 각 회차별로 조회
         const responsesSnapshot = await database.ref('responses').once('value');
         const allResponses = responsesSnapshot.val() || {};
-        
+
         // 회차별 참가자 ID 저장
         adminSessionList = [];
-        
+
         for (const [sessionId, sessionData] of Object.entries(sessions)) {
             // 해당 회차의 참가자 ID 수집 (쿼리 사용)
             const participantsSnapshot = await database.ref('participants')
                 .orderByChild('sessionId')
                 .equalTo(sessionId)
                 .once('value');
-            
+
             const sessionParticipants = participantsSnapshot.val() || {};
             const participantIds = Object.keys(sessionParticipants);
-            
+
             adminSessionList.push({
                 sessionId: sessionId,
                 participantIds: participantIds
             });
-            
+
             const participantCount = participantIds.length;
-            
+
             // 완료율 계산
             let totalWeeks = participantCount * 2;
             let completedWeeks = 0;
-            
+
             participantIds.forEach(userId => {
                 const userResponses = allResponses[userId] || {};
                 if (userResponses['week1']) completedWeeks++;
                 if (userResponses['week4']) completedWeeks++;
             });
-            
+
             const completionRate = totalWeeks > 0 ? Math.round((completedWeeks / totalWeeks) * 100) : 0;
-            
+
             const sessionDiv = document.createElement('div');
             sessionDiv.className = 'session-card';
             sessionDiv.innerHTML = `
@@ -620,7 +547,7 @@ async function loadAdminPage() {
                 </div>
                 <button class="btn" onclick="viewSessionDetail('${sessionId}')">상세 보기</button>
             `;
-            
+
             container.appendChild(sessionDiv);
         }
     } catch (error) {
@@ -634,18 +561,18 @@ async function viewSessionDetail(sessionId) {
     try {
         const sessionSnapshot = await database.ref(`sessions/${sessionId}`).once('value');
         const sessionData = sessionSnapshot.val();
-        
+
         // 해당 회차의 참가자만 쿼리
         const participantsSnapshot = await database.ref('participants')
             .orderByChild('sessionId')
             .equalTo(sessionId)
             .once('value');
-        
+
         const sessionParticipants = participantsSnapshot.val() || {};
-        
+
         const responsesSnapshot = await database.ref('responses').once('value');
         const allResponses = responsesSnapshot.val() || {};
-        
+
         const container = document.getElementById('adminContent');
         container.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -658,12 +585,12 @@ async function viewSessionDetail(sessionId) {
                 <button class="btn btn-secondary" onclick="loadAdminPage()" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
             </div>
         `;
-        
+
         // 참가자별 진행 상황
         for (const [userId, userData] of Object.entries(sessionParticipants)) {
             const userResponses = allResponses[userId] || {};
             const completedWeeks = Object.keys(userResponses).length;
-            
+
             const userDiv = document.createElement('div');
             userDiv.className = 'participant-item';
             userDiv.innerHTML = `
@@ -676,7 +603,7 @@ async function viewSessionDetail(sessionId) {
                 </div>
                 <button class="btn" onclick="viewUserResponses('${userId}')" style="width: auto; padding: 10px 20px;">응답 보기</button>
             `;
-            
+
             container.appendChild(userDiv);
         }
     } catch (error) {
@@ -714,7 +641,7 @@ async function viewUserResponses(userId) {
         // 3. 사용자 응답 로드
         const responsesSnapshot = await database.ref(`responses/${userId}`).once('value');
         const userResponses = responsesSnapshot.val() || {};
-        
+
         const container = document.getElementById('adminContent');
         container.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -727,11 +654,11 @@ async function viewUserResponses(userId) {
                 <button class="btn btn-secondary" onclick="viewSessionDetail('${participantData.sessionId}')" style="width: auto; padding: 10px 20px;">← 돌아가기</button>
             </div>
         `;
-        
+
         const targetWeeks = [1, 4];
         for (const week of targetWeeks) {
             const weekData = userResponses[`week${week}/sensory`];
-            
+
             if (!weekData) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'result-card';
@@ -739,7 +666,7 @@ async function viewUserResponses(userId) {
                 container.appendChild(emptyDiv);
                 continue;
             }
-            
+
             const weekDiv = document.createElement('div');
             weekDiv.className = 'result-card';
             weekDiv.innerHTML = `<h3>${week}주차 (${new Date(weekData.timestamp).toLocaleDateString('ko-KR')})</h3>`;
@@ -747,10 +674,10 @@ async function viewUserResponses(userId) {
             userSurveyTemplate.categories.forEach((category) => {
                 const categoryData = weekData[category.id];
                 if (!categoryData) return;
-                
+
                 const calculatedTotal = categoryData.questions.reduce((sum, q) => sum + q.value, 0);
                 const sensitivity = calculateSensitivity(calculatedTotal, category.scoreRange);
-                
+
                 const catDiv = document.createElement('div');
                 catDiv.style.marginTop = '10px';
                 catDiv.innerHTML = `
@@ -762,10 +689,10 @@ async function viewUserResponses(userId) {
                         </div>
                     </div>
                 `;
-                
+
                 weekDiv.appendChild(catDiv);
             });
-            
+
             container.appendChild(weekDiv);
         }
     } catch (error) {
@@ -776,64 +703,54 @@ async function viewUserResponses(userId) {
 
 async function handleRouteChange() {
     // 현재 해시값 (예: #week1, #dashboard)
-    // 해시가 없으면 '#login'을 기본값으로 사용
-    const hash = window.location.hash || '#login';
-    
-    // 1-1. 모든 화면을 일단 숨깁니다.
-    document.querySelectorAll('.login-screen, .participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-    
-    // 1-2. 해시 값에 따라 적절한 함수를 호출하고 화면을 보여줍니다.
-    
-    // --- (A) 인증이 필요한 페이지 ---
-    // 세션에서 로그인 정보 확인
+    const hash = window.location.hash || '#dashboard';
+
+    // 로그인 체크 - 로그인 안 되어 있으면 index.html로 리다이렉트
     const savedUser = sessionStorage.getItem('currentUser');
     const savedIsAdmin = sessionStorage.getItem('isAdmin');
     
+    if (!savedUser && !savedIsAdmin) {
+        // 로그인 안 됨 - 현재 페이지를 returnUrl로 저장하고 index.html로 이동
+        sessionStorage.setItem('returnUrl', window.location.href);
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // 모든 화면 숨기기
+    document.querySelectorAll('.participant-dashboard-screen, .survey-screen, .result-screen, .admin-screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+
+    // 해시 값에 따라 적절한 함수 호출
+
     if (hash === '#dashboard') {
-        if (!savedUser) { 
-            location.hash = '#login'; // 로그인 안됐으면 로그인으로
-            return; 
-        }
         currentUser = savedUser;
         currentSessionId = sessionStorage.getItem('currentSessionId');
-        await loadParticipantDashboard(); // 데이터 로드
-        showScreen('participant-dashboard-screen'); // 화면 표시
-        
+        await loadParticipantDashboard();
+        showScreen('participant-dashboard-screen');
+
     } else if (hash === '#admin') {
-        if (!savedIsAdmin) { 
-            location.hash = '#login'; // 관리자 아니면 로그인으로
-            return; 
+        if (!savedIsAdmin) {
+            window.location.href = 'index.html';
+            return;
         }
         isAdmin = true;
-        await loadAdminPage(); // 데이터 로드
-        showScreen('admin-screen'); // 화면 표시
+        await loadAdminPage();
+        showScreen('admin-screen');
 
-    // --- (B) 주차별 페이지 (숫자 파싱) ---
     } else if (hash.startsWith('#week')) {
-        if (!savedUser) { location.hash = '#login'; return; }
         const week = parseInt(hash.replace('#week', ''));
-        currentUser = savedUser; // viewWeekDetail이 currentUser를 사용
-        await viewWeekDetail(week); // 기존 함수 호출 (이 함수가 showResults -> showScreen을 호출)
-        
-    } else if (hash.startsWith('#survey')) {
-        if (!savedUser) { location.hash = '#login'; return; }
-        const week = parseInt(hash.replace('#survey', ''));
-        currentUser = savedUser; // startWeekSurvey가 currentUser를 사용
-        startWeekSurvey(week); // 기존 함수 호출 (이 함수가 showScreen을 호출)
+        currentUser = savedUser;
+        await viewWeekDetail(week);
 
-    // --- (C) 로그인 페이지 ---
-    } else { // '#login' 또는 알 수 없는 해시
-        // 이미 로그인 상태인지 확인
-        if (savedIsAdmin) {
-            location.hash = '#admin'; // 관리자면 어드민으로 리다이렉트
-        } else if (savedUser) {
-            location.hash = '#dashboard'; // 참가자면 대시보드로 리다이렉트
-        } else {
-            // 로그인 상태가 아니면 로그인 화면 표시
-            showScreen('login-screen');
-        }
+    } else if (hash.startsWith('#survey')) {
+        const week = parseInt(hash.replace('#survey', ''));
+        currentUser = savedUser;
+        startWeekSurvey(week);
+
+    } else {
+        // 기본값: 대시보드로
+        location.hash = '#dashboard';
     }
 }
 
@@ -841,25 +758,16 @@ async function handleRouteChange() {
 window.addEventListener('load', () => {
     // 라우터 실행
     handleRouteChange();
-    
-    // 기존 onload에 있던 이벤트 리스너들 다시 등록
+
+    // 설문 변경 감지하여 임시 저장
     document.addEventListener('change', function(e) {
-        if (e.target.type === 'radio' || e.target.tagName === 'TEXTAREA') { // TEXTAREA 변경 감지
+        if (e.target.type === 'radio' || e.target.tagName === 'TEXTAREA') {
             updateProgress();
             if (currentWeek && currentUser) {
-                saveDraftResponse(currentWeek); // 임시 저장 호출
+                saveDraftResponse(currentWeek);
             }
         }
     });
-
-    const loginInput = document.getElementById('loginInput');
-    if (loginInput) {
-        loginInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                login();
-            }
-        });
-    }
 });
 
 window.addEventListener('hashchange', handleRouteChange);
