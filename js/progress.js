@@ -65,7 +65,8 @@ async function loadData() {
         sessionId: currentUser.sessionId,
         sessionName: sessionData.name,
         templateId,
-        hasMissions: !!surveyTemplate.missions
+        hasMissions: !!surveyTemplate.missions,
+        missionCount: surveyTemplate.missions ? surveyTemplate.missions.length : 0
     });
 
     // 기존 응답 로드
@@ -104,16 +105,25 @@ function renderDashboard() {
         return;
     }
 
-    missionListEl.innerHTML = weeks.map((week, index) => {
-        const weekNum = index + 1;
-        const mission = surveyTemplate.missions[index]; // 각 주차별 미션
+    // 미션 정렬 및 매핑
+    const sortedMissions = surveyTemplate.missions
+        .map((mission, index) => ({
+            ...mission,
+            // week 필드가 있으면 사용, 없으면 index 기반 (1-based)
+            week: mission.week || (index + 1),
+            originalIndex: index
+        }))
+        .sort((a, b) => a.week - b.week); // week 순서대로 정렬
+
+    missionListEl.innerHTML = sortedMissions.map((mission) => {
+        const week = `week${mission.week}`;
         const response = responsesData[week];
         const isCompleted = !!response;
 
         return `
             <div class="mission-card ${isCompleted ? 'completed view-mode' : ''}" data-week="${week}">
                 <div class="mission-header">
-                    <div class="mission-week">${weekNum}주차 미션</div>
+                    <div class="mission-week">${mission.week}주차 미션</div>
                     <div class="mission-status ${isCompleted ? 'completed' : 'incomplete'}">
                         ${isCompleted ? '✓ 완료' : '⚠ 미완료'}
                     </div>
@@ -121,7 +131,7 @@ function renderDashboard() {
 
                 <div class="mission-content">
                     <div class="mission-title">
-                        ${mission ? mission.title : '미션이 없습니다'}
+                        ${mission.title || '미션이 없습니다'}
                     </div>
 
                     <div class="input-section">
