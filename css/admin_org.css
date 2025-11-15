@@ -453,7 +453,25 @@ button:disabled {
 
 .week-box h4 {
     color: #667eea;
-    margin-bottom: 15px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.week-box-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.week-box-header h4 {
+    margin: 0 0 8px 0;
+    text-align: center;
+}
+
+.week-timestamp {
+    font-size: 11px;
+    color: #999;
+    font-weight: 400;
     text-align: center;
 }
 

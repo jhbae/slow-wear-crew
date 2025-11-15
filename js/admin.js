@@ -281,11 +281,17 @@ function displaySensoryByParticipant(participantData) {
 
                 <div class="grid-2col" style="margin-top: 20px;">
                     <div class="week-box ${hasWeek1 ? 'has-data' : ''}">
-                        <h4>Week 1 ${hasWeek1 ? '✓' : ''}</h4>
+                        <div class="week-box-header">
+                            <h4>Week 1 ${hasWeek1 ? '✓' : ''}</h4>
+                            ${hasWeek1 ? `<div class="week-timestamp">${new Date(participant.week1.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                        </div>
                         ${week1HTML}
                     </div>
                     <div class="week-box ${hasWeek4 ? 'has-data' : ''}">
-                        <h4>Week 4 ${hasWeek4 ? '✓' : ''}</h4>
+                        <div class="week-box-header">
+                            <h4>Week 4 ${hasWeek4 ? '✓' : ''}</h4>
+                            ${hasWeek4 ? `<div class="week-timestamp">${new Date(participant.week4.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                        </div>
                         ${week4HTML}
                     </div>
                 </div>
@@ -604,7 +610,10 @@ function displayProgressByParticipant(participantData) {
 
             return `
                 <div class="week-box ${hasData ? 'has-data' : ''}">
-                    <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
+                    <div class="week-box-header">
+                        <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
+                        ${hasData ? `<div class="week-timestamp">${new Date(weekData.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                    </div>
                     ${hasData ? `
                         <div class="question-item">
                             <div class="field-label">🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</div>
@@ -616,9 +625,6 @@ function displayProgressByParticipant(participantData) {
                                 <div class="response-text-box">${weekData.guardianMemo}</div>
                             </div>
                         ` : ''}
-                        <div class="response-timestamp">
-                            ${new Date(weekData.timestamp).toLocaleString('ko-KR')}
-                        </div>
                     ` : `
                         <div class="no-response">응답 없음</div>
                     `}
@@ -755,7 +761,10 @@ function renderParticipantDetail(participantId) {
 
         return `
             <div class="week-box ${hasData ? 'has-data' : ''}">
-                <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
+                <div class="week-box-header">
+                    <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
+                    ${hasData ? `<div class="week-timestamp">${new Date(weekData.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                </div>
                 ${hasData ? `
                     <div class="question-item">
                         <div class="field-label">🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</div>
@@ -767,9 +776,6 @@ function renderParticipantDetail(participantId) {
                             <div class="response-text-box">${weekData.guardianMemo}</div>
                         </div>
                     ` : ''}
-                    <div class="response-timestamp">
-                        ${new Date(weekData.timestamp).toLocaleString('ko-KR')}
-                    </div>
                 ` : `
                     <div class="no-response">응답 없음</div>
                 `}
@@ -797,11 +803,17 @@ function renderParticipantDetail(participantId) {
             <h3 class="section-header">💆 Sensory Survey</h3>
             <div class="grid-2col">
                 <div class="week-box ${hasSensoryWeek1 ? 'has-data' : ''}">
-                    <h4>Week 1 ${hasSensoryWeek1 ? '✓' : ''}</h4>
+                    <div class="week-box-header">
+                        <h4>Week 1 ${hasSensoryWeek1 ? '✓' : ''}</h4>
+                        ${hasSensoryWeek1 ? `<div class="week-timestamp">${new Date(responses.week1.sensory.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                    </div>
                     ${sensoryWeek1HTML}
                 </div>
                 <div class="week-box ${hasSensoryWeek4 ? 'has-data' : ''}">
-                    <h4>Week 4 ${hasSensoryWeek4 ? '✓' : ''}</h4>
+                    <div class="week-box-header">
+                        <h4>Week 4 ${hasSensoryWeek4 ? '✓' : ''}</h4>
+                        ${hasSensoryWeek4 ? `<div class="week-timestamp">${new Date(responses.week4.sensory.timestamp).toLocaleString('ko-KR')}</div>` : ''}
+                    </div>
                     ${sensoryWeek4HTML}
                 </div>
             </div>

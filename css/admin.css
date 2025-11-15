@@ -396,3 +396,23 @@ button:disabled {
     40% { content: '..'; }
     60%, 100% { content: '...'; }
 }
+
+/* Week Box Header */
+.week-box-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.week-box-header h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+}
+
+.week-timestamp {
+    font-size: 11px;
+    color: #999;
+    font-weight: 400;
+}
