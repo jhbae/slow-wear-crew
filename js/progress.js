@@ -6,6 +6,56 @@ let sessionData = null;
 let surveyTemplate = null;
 let responsesData = {};
 
+// 주차별 날짜 범위 계산
+function calculateWeekRanges(startDateString) {
+    const startDate = new Date(startDateString.replace(/\./g, '-'));
+    const weekRanges = [];
+
+    for (let weekNum = 1; weekNum <= 4; weekNum++) {
+        const weekStartDays = (weekNum - 1) * 7;
+        const weekEndDays = weekNum * 7 - 1;
+
+        const weekStart = new Date(startDate);
+        weekStart.setDate(startDate.getDate() + weekStartDays);
+
+        const weekEnd = new Date(startDate);
+        weekEnd.setDate(startDate.getDate() + weekEndDays);
+
+        weekRanges.push({
+            week: weekNum,
+            startDate: weekStart,
+            endDate: weekEnd
+        });
+    }
+
+    return weekRanges;
+}
+
+// 현재 주차 계산 (오늘 날짜 기준)
+function getCurrentWeek(startDateString) {
+    const startDate = new Date(startDateString.replace(/\./g, '-'));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+
+    const diffTime = today - startDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        return 0; // 아직 시작 전
+    }
+
+    const currentWeek = Math.floor(diffDays / 7) + 1;
+    return currentWeek; // 1, 2, 3, 4 또는 그 이상
+}
+
+// 날짜를 "M월 D일" 형식으로 포맷
+function formatDateKorean(date) {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}월 ${day}일`;
+}
+
 // 페이지 로드 시 초기화
 window.addEventListener('DOMContentLoaded', async () => {
     // 로그인 체크
@@ -113,6 +163,10 @@ function renderDashboard() {
         return;
     }
 
+    // 현재 주차 계산
+    const currentWeek = getCurrentWeek(sessionData.startDate);
+    const weekRanges = calculateWeekRanges(sessionData.startDate);
+
     // 미션 정렬 및 매핑
     const sortedMissions = surveyTemplate.missions
         .map((mission, index) => ({
@@ -127,7 +181,30 @@ function renderDashboard() {
         const week = `week${mission.week}`;
         const response = responsesData[week];
         const isCompleted = !!response;
+        const isUnlocked = mission.week <= currentWeek; // 현재 주차 이하만 공개
+        const weekRange = weekRanges[mission.week - 1];
 
+        // 미공개 주차 처리
+        if (!isUnlocked) {
+            const startDateFormatted = formatDateKorean(weekRange.startDate);
+            return `
+                <div class="mission-card locked" data-week="${week}">
+                    <div class="mission-header">
+                        <div class="mission-week">${mission.week}주차 미션</div>
+                        <div class="mission-status locked">🔒 공개 예정</div>
+                    </div>
+
+                    <div class="mission-content">
+                        <div class="locked-message">
+                            <div class="locked-icon">🔒</div>
+                            <p>${startDateFormatted}(월)에 공개될 예정입니다.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 공개된 주차 처리
         return `
             <div class="mission-card ${isCompleted ? 'completed view-mode' : ''}" data-week="${week}">
                 <div class="mission-header">
@@ -143,7 +220,7 @@ function renderDashboard() {
                     </div>
 
                     <div class="input-section">
-                        <label>🐾 반려견의 반응</label>
+                        <label>🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</label>
                         <textarea
                             id="${week}-dogReaction"
                             placeholder="반려견이 어떻게 반응했나요? 자유롭게 기록해주세요."
@@ -152,7 +229,7 @@ function renderDashboard() {
                     </div>
 
                     <div class="input-section">
-                        <label>📝 보호자 메모</label>
+                        <label>📝 한 주 동안, 내가 새롭게 알게 된 점은 무엇인가요?</label>
                         <textarea
                             id="${week}-guardianMemo"
                             placeholder="추가로 기록하고 싶은 내용을 작성해주세요."
@@ -186,7 +263,7 @@ async function saveMission(week) {
     const guardianMemo = guardianMemoEl.value.trim();
 
     if (!dogReaction) {
-        alert('반려견의 반응을 입력해주세요.');
+        alert('한 주 동안, 우리 반려견에게 어떤 변화가 있었나요? 를 입력해주세요.');
         dogReactionEl.focus();
         return;
     }

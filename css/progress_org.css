@@ -94,6 +94,12 @@
     border: 1px solid #ffeaa7;
 }
 
+.mission-status.locked {
+    background: #e9ecef;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
 /* 미션 내용 */
 .mission-content {
     margin-bottom: 20px;
@@ -206,6 +212,29 @@
 .empty-state-icon {
     font-size: 64px;
     margin-bottom: 20px;
+}
+
+/* 잠긴 미션 카드 */
+.mission-card.locked {
+    border-color: #dee2e6;
+    background: #f8f9fa;
+    opacity: 0.8;
+}
+
+.locked-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.locked-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.locked-message p {
+    font-size: 15px;
+    font-weight: 500;
 }
 
 /* 반응형 */

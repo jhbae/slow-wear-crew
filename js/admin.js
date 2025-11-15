@@ -607,12 +607,12 @@ function displayProgressByParticipant(participantData) {
                     <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
                     ${hasData ? `
                         <div class="question-item">
-                            <div class="field-label">🐾 반려견의 반응</div>
+                            <div class="field-label">🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</div>
                             <div class="response-text-box">${weekData.dogReaction}</div>
                         </div>
                         ${weekData.guardianMemo ? `
                             <div class="question-item" style="margin-top: 15px;">
-                                <div class="field-label">📝 보호자 메모</div>
+                                <div class="field-label">📝 한 주 동안, 내가 새롭게 알게 된 점은 무엇인가요?</div>
                                 <div class="response-text-box">${weekData.guardianMemo}</div>
                             </div>
                         ` : ''}
@@ -758,12 +758,12 @@ function renderParticipantDetail(participantId) {
                 <h4>Week ${weekNum} ${hasData ? '✓' : ''}</h4>
                 ${hasData ? `
                     <div class="question-item">
-                        <div class="field-label">🐾 반려견의 반응</div>
+                        <div class="field-label">🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</div>
                         <div class="response-text-box">${weekData.dogReaction}</div>
                     </div>
                     ${weekData.guardianMemo ? `
                         <div class="question-item" style="margin-top: 15px;">
-                            <div class="field-label">📝 보호자 메모</div>
+                            <div class="field-label">📝 한 주 동안, 내가 새롭게 알게 된 점은 무엇인가요?</div>
                             <div class="response-text-box">${weekData.guardianMemo}</div>
                         </div>
                     ` : ''}
