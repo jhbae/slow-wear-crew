@@ -223,7 +223,6 @@ function renderDashboard() {
                         <label>🐾 한 주 동안, 우리 반려견에게 어떤 변화가 있었나요?</label>
                         <textarea
                             id="${week}-dogReaction"
-                            placeholder="반려견이 어떻게 반응했나요? 자유롭게 기록해주세요."
                             ${isCompleted ? 'disabled' : ''}
                         >${response ? response.dogReaction : ''}</textarea>
                     </div>
@@ -232,7 +231,6 @@ function renderDashboard() {
                         <label>📝 한 주 동안, 내가 새롭게 알게 된 점은 무엇인가요?</label>
                         <textarea
                             id="${week}-guardianMemo"
-                            placeholder="추가로 기록하고 싶은 내용을 작성해주세요."
                             ${isCompleted ? 'disabled' : ''}
                         >${response ? response.guardianMemo : ''}</textarea>
                     </div>

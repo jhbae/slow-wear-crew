@@ -109,7 +109,7 @@
     font-size: 16px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     padding: 12px;
     background: #f8f9fa;
     border-radius: 8px;
@@ -118,15 +118,20 @@
 
 /* 입력 그룹 */
 .input-section {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8fbff;
+    border-radius: 10px;
+    border: 1px solid #e3f2fd;
 }
 
 .input-section label {
     display: block;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-    font-size: 14px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 .input-section textarea {
